@@ -1,4 +1,4 @@
-package io.github.cjustinn.instancedworlds;
+package io.github.cjustinn.instancedworlds.Parties;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -6,6 +6,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
 public class PartyStatsListener implements Listener {
@@ -38,6 +39,13 @@ public class PartyStatsListener implements Listener {
     public void onPlayerRespawn(PlayerRespawnEvent event) {
         if (group.playerIsInParty(event.getPlayer().getUniqueId())) {
             group.updatePlayerScore(event.getPlayer(), 20);
+        }
+    }
+
+    @EventHandler
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        if (group.playerIsInParty(event.getPlayer().getUniqueId())) {
+            group.updatePlayerScore(event.getPlayer(), 0);
         }
     }
 

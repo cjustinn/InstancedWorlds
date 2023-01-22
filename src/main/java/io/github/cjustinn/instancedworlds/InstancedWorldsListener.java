@@ -1,12 +1,14 @@
 package io.github.cjustinn.instancedworlds;
 
+import io.github.cjustinn.instancedworlds.Instances.InstancePortal;
+import io.github.cjustinn.instancedworlds.Instances.InstantiatedWorld;
+import io.github.cjustinn.instancedworlds.Parties.Party;
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.world.WorldUnloadEvent;
 
@@ -127,8 +129,7 @@ public class InstancedWorldsListener implements Listener {
             // The world was an instance.
             // Check the size of the world's player list, if empty, destroy the instance.
             if (event.getFrom().getPlayerCount() == 0) {
-                InstantiatedWorld instance = InstancedWorldsManager.instances.get(InstancedWorldsManager.getPlayerInstanceIndex(event.getFrom().getName()));
-                instance.destroyInstance();
+                InstancedWorldsManager.instances.get(InstancedWorldsManager.getPlayerInstanceIndex(event.getFrom().getName())).destroyInstance();
             }
         }
     }

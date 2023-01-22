@@ -1,5 +1,6 @@
-package io.github.cjustinn.instancedworlds;
+package io.github.cjustinn.instancedworlds.Commands;
 
+import io.github.cjustinn.instancedworlds.InstancedWorldsManager;
 import net.kyori.adventure.util.TriState;
 import org.bukkit.*;
 import org.bukkit.command.Command;

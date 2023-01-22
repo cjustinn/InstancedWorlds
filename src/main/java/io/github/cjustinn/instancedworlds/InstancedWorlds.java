@@ -1,14 +1,21 @@
 package io.github.cjustinn.instancedworlds;
 
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.World;
-import org.bukkit.WorldCreator;
+import io.github.cjustinn.instancedworlds.Commands.*;
+import io.github.cjustinn.instancedworlds.Instances.InstancePortal;
+import io.github.cjustinn.instancedworlds.Instances.InstantiatedWorld;
+import io.github.cjustinn.instancedworlds.Instances.Region;
+import org.bukkit.*;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 
 public final class InstancedWorlds extends JavaPlugin {
 
@@ -70,6 +77,45 @@ public final class InstancedWorlds extends JavaPlugin {
             }
         });
 
+        // Register all custom items.
+        ConfigurationSection itemSection = getConfigurationFile().getConfigurationSection("items");
+        if (itemSection != null) {
+
+            for (String itemKey : itemSection.getKeys(false)) {
+
+                String name = getConfigurationFile().getString(String.format("items.%s.name", itemKey));
+                int cmd = getConfigurationFile().getInt(String.format("items.%s.customModelData", itemKey));
+                List<String> lore = getConfigurationFile().getStringList(String.format("items.%s.lore", itemKey));
+                String item = getConfigurationFile().getString(String.format("items.%s.item", itemKey));
+                Map<String, Integer> enchants = new HashMap<>();
+
+                // Get Enchantments
+                for (String enchantmentKey : getConfigurationFile().getConfigurationSection(String.format("items.%s.enchantments", itemKey)).getKeys(false)) {
+                    Bukkit.getConsoleSender().sendMessage(String.format("[InstancedWorlds] Enchantment: %s", enchantmentKey));
+                    enchants.put(enchantmentKey, getConfigurationFile().getInt(String.format("items.%s.enchantments.%s.level", itemKey, enchantmentKey)));
+                }
+
+                InstancedWorldsManager.registerCustomItem(itemKey, name, item, cmd, lore, enchants);
+
+            }
+
+        }
+
+        // Register all loot tables.
+        ConfigurationSection lootTableSection = getConfigurationFile().getConfigurationSection("loottables");
+        if (lootTableSection != null) {
+
+            for (String tableKey : lootTableSection.getKeys(false)) {
+                List<String> items = new ArrayList<>();
+                for (String item : getConfigurationFile().getConfigurationSection(String.format("loottables.%s.items", tableKey)).getKeys(false)) {
+                    items.add(item);
+                }
+
+                InstancedWorldsManager.registerLootTable(tableKey, items);
+            }
+
+        }
+
         // Register event listeners.
         getServer().getPluginManager().registerEvents(new InstancedWorldsListener(), this);
 
@@ -89,12 +135,12 @@ public final class InstancedWorlds extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        // Destroy all active instances.
-        for (InstantiatedWorld instance : InstancedWorldsManager.instances) {
-            instance.destroyInstance();
-        }
+
     }
 
     public FileConfiguration getConfigurationFile() { return this.configFile; }
+    public void registerListenerWithPlugin(Listener target) {
+        getServer().getPluginManager().registerEvents(target, this);
+    }
 
 }

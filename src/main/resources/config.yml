@@ -1,2 +1,31 @@
 maxPartySize: 5
 partyInviteTimeout: 60
+instancePortalCooldown: 15
+items:
+  swordofhades:
+    name: Hades' Sword
+    customModelData: 0
+    lore:
+      - This sword belonged to the god
+      - Hades, Lord of the Underworld.
+    item: netherite_sword
+    enchantments:
+      sharpness:
+        level: 5
+      fire_aspect:
+        level: 3
+loottables:
+  creeperTable01:
+    items:
+      ci:swordofhades:
+        chance: 1
+        minAmount: 1
+        maxAmount: 1
+      gunpowder:
+        chance: 0.75
+        minAmount: 2
+        maxAmount: 8
+      diamond:
+        chance: 0.25
+        minAmount: 1
+        maxAmount: 3

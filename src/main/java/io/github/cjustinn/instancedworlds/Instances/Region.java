@@ -1,4 +1,4 @@
-package io.github.cjustinn.instancedworlds;
+package io.github.cjustinn.instancedworlds.Instances;
 
 import org.bukkit.Location;
 import org.bukkit.World;

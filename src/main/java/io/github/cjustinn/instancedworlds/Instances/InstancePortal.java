@@ -1,4 +1,4 @@
-package io.github.cjustinn.instancedworlds;
+package io.github.cjustinn.instancedworlds.Instances;
 
 import org.apache.commons.io.FileUtils;
 import org.bukkit.*;
@@ -41,13 +41,6 @@ public class InstancePortal {
         // Gather the values needed to save in the config file.
         UUID instanceId = UUID.randomUUID();
         UUID instanceOwner = owner.getUniqueId();
-        String instanceTemplateName = this.instanceTemplate.getName();
-        String instanceOriginString = String.format("%s;%f;%f;%f", "instance_" + instanceId, this.origin.getX(), this.origin.getY(), this.origin.getZ());
-
-        // Save values to the config file.
-        InstancedWorldsManager.saveConfigValue("instances.instance_" + instanceId + ".owner", instanceOwner.toString());
-        InstancedWorldsManager.saveConfigValue("instances.instance_" + instanceId + ".origin", instanceOriginString);
-        InstancedWorldsManager.saveConfigValue("instances.instance_" + instanceId + ".template", instanceTemplateName);
 
         // Unload the template world.
         Bukkit.unloadWorld(this.instanceTemplate.getName(), true);

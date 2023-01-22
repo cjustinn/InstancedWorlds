@@ -1,5 +1,7 @@
-package io.github.cjustinn.instancedworlds;
+package io.github.cjustinn.instancedworlds.Commands;
 
+import io.github.cjustinn.instancedworlds.InstancedWorldsManager;
+import io.github.cjustinn.instancedworlds.Instances.InstancePortal;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;

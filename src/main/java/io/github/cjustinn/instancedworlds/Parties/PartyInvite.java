@@ -1,6 +1,6 @@
-package io.github.cjustinn.instancedworlds;
+package io.github.cjustinn.instancedworlds.Parties;
 
-import org.bukkit.entity.Player;
+import io.github.cjustinn.instancedworlds.InstancedWorldsManager;
 
 import java.time.Duration;
 import java.time.Instant;

@@ -1,16 +1,19 @@
 package io.github.cjustinn.instancedworlds;
 
+import io.github.cjustinn.instancedworlds.CustomItems.CustomItem;
+import io.github.cjustinn.instancedworlds.CustomItems.LootTable;
+import io.github.cjustinn.instancedworlds.Instances.InstanceActionType;
+import io.github.cjustinn.instancedworlds.Instances.InstancePortal;
+import io.github.cjustinn.instancedworlds.Instances.InstantiatedWorld;
+import io.github.cjustinn.instancedworlds.Parties.Party;
+import io.github.cjustinn.instancedworlds.Parties.PartyInvite;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
-import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class InstancedWorldsManager {
 
@@ -20,15 +23,93 @@ public class InstancedWorldsManager {
     public static int instancePortalCooldown = 15;
 
     // Static lists used to store persisted data.
+    // Instance-related lists
     public static List<World> templates = new ArrayList<World>();
     public static List<InstantiatedWorld> instances = new ArrayList<InstantiatedWorld>();
-
     public static List<InstancePortal> portals = new ArrayList<InstancePortal>();
 
+    // Party-related lists
     public static List<Party> parties = new ArrayList<Party>();
     public static List<PartyInvite> partyInvites = new ArrayList<PartyInvite>();
 
+    // Custom Item-related lists.
+    public static List<CustomItem> customItems = new ArrayList<>();
+    public static List<LootTable> lootTables = new ArrayList<>();
+
     // Function definitions
+    /*
+        Pass a "String" loot table id and a "List<String>" of items, which the function will
+        use to create a new LootTable object and store it in the "lootTables" list.
+    */
+    public static void registerLootTable(String id, List<String> items) {
+        InstancedWorldsManager.lootTables.add(new LootTable(id, items));
+    }
+
+    /*
+        Pass a "String" loot table id for the function to use to iterate through all of them,
+        returning true or false, depending on if a loot table with the same id exists.
+    */
+    public static boolean lootTableExists(String id) {
+        boolean found = false;
+
+        for (int i = 0; i < InstancedWorldsManager.lootTables.size() && !found; i++) {
+            if (InstancedWorldsManager.lootTables.get(i).getTableId().equalsIgnoreCase(id))
+                found = true;
+        }
+
+        return found;
+    }
+
+    /*
+        Pass a "String" type custom loot table id value, which the function uses
+        whilst iterating through all registered loot tables to find and return the
+        associated loot table, or null if it finds nothing.
+    */
+    public static LootTable getLootTableById(String id) {
+        boolean found = false;
+        LootTable lootTable = null;
+
+        for (int i = 0; i < InstancedWorldsManager.lootTables.size() && !found; i++) {
+            LootTable table = InstancedWorldsManager.lootTables.get(i);
+
+            if (table.getTableId().equalsIgnoreCase(id)) {
+                found = true;
+                lootTable = table;
+            }
+        }
+
+        return lootTable;
+    }
+
+    /*
+        Pass a "String" item id, "String" item name, "int" custom model data, "List<String>"
+        lore, "String" item material type, and a "Map<String, Integer>" of enchantments,
+        which the function will use to create and save a new CustomItem.
+    */
+    public static void registerCustomItem(String id, String name, String type, int cmd, List<String> lore, Map<String, Integer> enchants) {
+        InstancedWorldsManager.customItems.add(new CustomItem(id, name, cmd, lore, type, enchants));
+    }
+
+    /*
+        Pass a "String" type custom item id value, which the function uses whilst
+        iterating through all registered custom items to find and return the associated
+        custom item, or null if it finds nothing.
+    */
+    public static CustomItem getCustomItemById(String id) {
+        boolean found = false;
+        CustomItem item = null;
+
+        for (int i = 0; i < InstancedWorldsManager.customItems.size() && !found; i++) {
+            CustomItem current = InstancedWorldsManager.customItems.get(i);
+            if (current.getItemId().equalsIgnoreCase(id)) {
+                found = true;
+                item = current;
+            }
+        }
+
+        return item;
+    }
+
     /*
         Pass a "String" type world name value, which the function will use to check if a
         template world exists with that name.
@@ -84,30 +165,6 @@ public class InstancedWorldsManager {
         boolean success = true;
 
         final int index = InstancedWorldsManager.getPlayerInstanceIndex(player, template);
-        if (index < 0) success = false;
-        else {
-
-            if (InstancedWorldsManager.saveConfigValue("instances." + InstancedWorldsManager.instances.get(index).getInstanceId(), null)) {
-                InstancedWorldsManager.instances.get(index).destroyInstance();
-                InstancedWorldsManager.instances.remove(index);
-            } else {
-                Bukkit.getConsoleSender().sendMessage(String.format("[InstancedWorlds] %sThe instance [%s] could not be destroyed.", ChatColor.RED, InstancedWorldsManager.instances.get(index).getInstanceId()));
-                success = false;
-            }
-
-        }
-
-        return success;
-    }
-
-    /*
-        Pass a "String" instance id value, which the function will
-        use to find an existing instance with matching values, and destroy the instanced world.
-    */
-    public static boolean removeInstance(String instanceId) {
-        boolean success = true;
-
-        final int index = InstancedWorldsManager.getPlayerInstanceIndex(instanceId);
         if (index < 0) success = false;
         else {
 

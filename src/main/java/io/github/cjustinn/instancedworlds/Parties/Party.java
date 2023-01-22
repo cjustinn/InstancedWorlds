@@ -1,5 +1,6 @@
-package io.github.cjustinn.instancedworlds;
+package io.github.cjustinn.instancedworlds.Parties;
 
+import io.github.cjustinn.instancedworlds.InstancedWorldsManager;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;

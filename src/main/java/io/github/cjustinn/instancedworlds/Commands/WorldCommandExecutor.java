@@ -1,4 +1,4 @@
-package io.github.cjustinn.instancedworlds;
+package io.github.cjustinn.instancedworlds.Commands;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
