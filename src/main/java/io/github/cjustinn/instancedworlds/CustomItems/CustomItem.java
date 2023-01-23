@@ -58,7 +58,6 @@ public class CustomItem {
         for (String enchantmentName : this.enchantments.keySet()) {
             Enchantment currentEnchantment = Enchantment.getByName(enchantmentName.toUpperCase());
             if (currentEnchantment != null) {
-                Bukkit.getConsoleSender().sendMessage(ChatColor.GOLD + currentEnchantment.toString() + " / " + this.enchantments.get(enchantmentName));
                 item.addEnchantment(currentEnchantment, this.enchantments.get(enchantmentName));
             }
         }

@@ -49,7 +49,7 @@ public class SpawnLootAction implements InstanceAction, Listener {
 
             // Generate the loot.
             List<ItemStack> lootItems = targetLootTable.generateItemsFromLootTable();
-            Bukkit.getConsoleSender().sendMessage(String.format("[InstancedWorlds] Generated %s%d%s items.", ChatColor.GOLD, lootItems.size(), ChatColor.RESET));
+
             // Add the loot to the chest.
             for (ItemStack item : lootItems)
                 chestInventory.addItem(item);

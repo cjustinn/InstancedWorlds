@@ -149,50 +149,67 @@ public class InstantiatedWorld implements Listener {
                         */
 
                         if (type == InstanceActionType.SpawnMob) {
+                            boolean isMythicMob = false;
+
                             // Check the third line for the type of entity.
-                            EntityType mobType = EntityType.fromName(((TextComponent) sign.line(2)).content().toLowerCase());
-                            if (mobType != null) {
+                            String entityName = ((TextComponent) sign.line(2)).content();
+                            isMythicMob = entityName.toLowerCase().startsWith("mm:");
 
-                                int amount = 0, mobId = -1, radius = -1;
+                            int amount = 0, mobId = -1, radius = -1;
 
-                                // The mob type is valid, carry on. Use the final line to extract the necessary data to handle spawn conditions, amount, and ids.
-                                String[] splitValues = ((TextComponent) sign.line(3)).content().split(";");
+                            // Use the final line to extract the necessary data to handle spawn conditions, amount, and ids.
+                            String[] splitValues = ((TextComponent) sign.line(3)).content().split(";");
 
-                                /*
-                                    Different things should happen, depending on the values provided by the user.
+                            /*
+                                Different things should happen, depending on the values provided by the user.
 
-                                    1 Value     -       The value should be considered the AMOUNT of the mob to spawn.
-                                    2 Values    -       The values should be considered the AMOUNT of the mob to spawn, and the
-                                                            RADIUS the player has to be in, from the spawn location, in order
-                                                            for the mob(s) to be spawned.
-                                    3 Values    -       The values should be considered the AMOUNT of the mob to spawn, the
-                                                            ID that should be assigned to the mob(s), and the RADIUS the player
-                                                            has to be in, from the spawn location, in order for the mob(s) to be
-                                                            spawned.
-                                */
+                                1 Value     -       The value should be considered the AMOUNT of the mob to spawn.
+                                2 Values    -       The values should be considered the AMOUNT of the mob to spawn, and the
+                                                        RADIUS the player has to be in, from the spawn location, in order
+                                                        for the mob(s) to be spawned.
+                                3 Values    -       The values should be considered the AMOUNT of the mob to spawn, the
+                                                        ID that should be assigned to the mob(s), and the RADIUS the player
+                                                        has to be in, from the spawn location, in order for the mob(s) to be
+                                                        spawned.
+                            */
 
-                                switch (splitValues.length) {
-                                    case 1:
-                                        amount = Integer.parseInt(splitValues[0]);
-                                        break;
-                                    case 2:
-                                        amount = Integer.parseInt(splitValues[0]);
-                                        radius = Integer.parseInt(splitValues[1]);
-                                        break;
-                                    case 3:
-                                        amount = Integer.parseInt(splitValues[0]);
-                                        mobId = Integer.parseInt(splitValues[1]);
-                                        radius = Integer.parseInt(splitValues[2]);
-                                        break;
-                                    default:
-                                        break;
+                            switch (splitValues.length) {
+                                case 1:
+                                    amount = Integer.parseInt(splitValues[0]);
+                                    break;
+                                case 2:
+                                    amount = Integer.parseInt(splitValues[0]);
+                                    radius = Integer.parseInt(splitValues[1]);
+                                    break;
+                                case 3:
+                                    amount = Integer.parseInt(splitValues[0]);
+                                    mobId = Integer.parseInt(splitValues[1]);
+                                    radius = Integer.parseInt(splitValues[2]);
+                                    break;
+                                default:
+                                    break;
+                            }
+
+                            /*
+                                If the sign indicates that it should be a MythicMob that is spawned, create a SpawnMythicMobAction provided that the
+                                MythicMobs plugin is enabled on the server. If it isn't marked with the "mm:" tag, then consider
+                                it to be a vanilla minecraft mob and create a SpawnMobAction.
+                            */
+                            if (!isMythicMob) {
+                                EntityType mobType = EntityType.fromName(entityName.toLowerCase());
+                                if (mobType != null) {
+                                    SpawnMobAction parsedAction = new SpawnMobAction(mobType, amount, radius, mobId, sign.getLocation());
+                                    this.actions.add(parsedAction);
+
+                                    Bukkit.getServer().getPluginManager().registerEvents(parsedAction, Bukkit.getPluginManager().getPlugin("InstancedWorlds"));
                                 }
+                            } else {
+                                if (InstancedWorldsManager.isPluginEnabled("MythicMobs")) {
+                                    SpawnMythicMobAction parsedAction = new SpawnMythicMobAction(entityName.replace("mm:", ""), amount, mobId, radius, sign.getLocation());
+                                    this.actions.add(parsedAction);
 
-                                SpawnMobAction newAction = new SpawnMobAction(mobType, amount, radius, mobId, sign.getLocation());
-                                this.actions.add(newAction);
-
-                                Bukkit.getServer().getPluginManager().registerEvents(newAction, Bukkit.getPluginManager().getPlugin("InstancedWorlds"));
-
+                                    Bukkit.getServer().getPluginManager().registerEvents(parsedAction, Bukkit.getPluginManager().getPlugin("InstancedWorlds"));
+                                }
                             }
                         } else if (type == InstanceActionType.SpawnLoot) {
                             // Get the loot table id from the third line.

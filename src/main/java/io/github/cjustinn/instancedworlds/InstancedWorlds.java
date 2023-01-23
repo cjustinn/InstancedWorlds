@@ -120,7 +120,7 @@ public final class InstancedWorlds extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new InstancedWorldsListener(), this);
 
         // Register commands.
-        getCommand("createtemplate").setExecutor(new TemplateCreatorCommand());
+        getCommand("template").setExecutor(new TemplateCreatorCommand());
         getCommand("party").setExecutor(new PartyCommandExecutor());
         getCommand("portal").setExecutor(new PortalCommandExecutor());
         getCommand("toworld").setExecutor(new WorldCommandExecutor());

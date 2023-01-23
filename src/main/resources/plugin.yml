@@ -7,9 +7,9 @@ load: STARTUP
 authors: [ CJustinn ]
 description: Create template worlds which can be instantiated as needed and accessed via portals.
 commands:
-  createtemplate:
-    description: Create a new template world with the provided name.
-    aliases: [ ct, createtemplate ]
+  template:
+    description: Create a new template, or manage the settings of an existing one.
+    aliases: [ template ]
   party:
     description: Create, join, leave, or invite people to a new party.
     aliases: [ party ]
@@ -22,3 +22,4 @@ commands:
   instance:
     description: Perform different actions relating to your current instance.
     aliases: [ instance ]
+softdepend: [ MythicMobs ]

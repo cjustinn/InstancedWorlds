@@ -38,6 +38,14 @@ public class InstancedWorldsManager {
 
     // Function definitions
     /*
+        Receives a "String" plugin name, and the function returns a boolean indicating if
+        the server has the provided plugin enabled.
+    */
+    public static boolean isPluginEnabled(String name) {
+        return Bukkit.getServer().getPluginManager().isPluginEnabled(name);
+    }
+
+    /*
         Pass a "String" loot table id and a "List<String>" of items, which the function will
         use to create a new LootTable object and store it in the "lootTables" list.
     */
