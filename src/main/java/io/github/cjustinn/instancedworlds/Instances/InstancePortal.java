@@ -24,6 +24,14 @@ public class InstancePortal {
         this.name = name;
     }
 
+    public InstancePortal(String id, World _template, Region _region, Location origin, String name) {
+        this.portalId = UUID.fromString(id);
+        this.instanceTemplate = _template;
+        this.region = _region;
+        this.origin = origin;
+        this.name = name;
+    }
+
     public InstancePortal(World _template, Location _c1, Location _c2, Location origin, String name) {
         this.portalId = UUID.randomUUID();
         this.instanceTemplate = _template;
@@ -32,10 +40,23 @@ public class InstancePortal {
         this.name = name;
     }
 
+    public InstancePortal(String id, World _template, Location _c1, Location _c2, Location origin, String name) {
+        this.portalId = UUID.fromString(id);
+        this.portalId = UUID.randomUUID();
+        this.instanceTemplate = _template;
+        this.region = new Region(_c1, _c2);
+        this.origin = origin;
+        this.name = name;
+    }
+
+    // Getters
     public World getInstanceTemplate() { return this.instanceTemplate; }
     public Region getRegion() { return this.region; }
     public UUID getPortalId() { return this.portalId; }
     public String getName() { return this.name; }
+
+    // Setters
+    public void setOrigin(Location location) { this.origin = location; }
 
     public InstantiatedWorld openInstance(Player owner) {
         // Gather the values needed to save in the config file.

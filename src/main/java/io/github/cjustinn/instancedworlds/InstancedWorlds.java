@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 
 public final class InstancedWorlds extends JavaPlugin {
@@ -69,7 +68,7 @@ public final class InstancedWorlds extends JavaPlugin {
                         Region region = new Region(regionLocations[0], regionLocations[1]);
 
                         // Create a new InstancePortal object and store it in the list.
-                        InstancedWorldsManager.savePortal(new InstancePortal(templateWorld, region, origin, portalName));
+                        InstancedWorldsManager.savePortal(new InstancePortal(key, templateWorld, region, origin, portalName));
                     }
                 }
 
@@ -127,6 +126,7 @@ public final class InstancedWorlds extends JavaPlugin {
         getCommand("instance").setExecutor(new InstanceCommandExecutor());
 
         // Register command tab completion.
+        getCommand("template").setTabCompleter(new TemplateCreatorTabCompleter());
         getCommand("party").setTabCompleter(new PartyCommandTabCompleter());
         getCommand("portal").setTabCompleter(new PortalCreationTabCompleter());
         getCommand("toworld").setTabCompleter(new WorldCommandTabCompleter());
