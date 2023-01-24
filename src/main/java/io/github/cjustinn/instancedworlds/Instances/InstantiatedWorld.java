@@ -83,6 +83,19 @@ public class InstantiatedWorld implements Listener {
         }
     }
 
+    // Helper function to check if a string is numeric.
+    private boolean valueIsNumeric(String value) {
+        boolean isNumeric = true;
+
+        try {
+            Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            isNumeric = false;
+        }
+
+        return isNumeric;
+    }
+
     public void destroyInstance() {
         // Teleport out any players still in the instance.
         for (Player player : this.getWorld().getPlayers()) {
@@ -101,16 +114,6 @@ public class InstantiatedWorld implements Listener {
         if (Bukkit.unloadWorld(this.getWorld(), false)) {
             // Remove the instance from the list.
             InstancedWorldsManager.instances.remove(InstancedWorldsManager.getPlayerInstanceIndex(this.instanceId));
-        }
-    }
-
-    // Listen for events involving players inside the current instance.
-    @EventHandler
-    public void onPlayerMove(PlayerMoveEvent event) {
-        if (event.getPlayer().getWorld().equals(this.getWorld())) {
-
-            // Iterate through all the registered instance actions and run them.
-
         }
     }
 
@@ -135,6 +138,9 @@ public class InstantiatedWorld implements Listener {
                                 break;
                             case "spawnloot":
                                 type = InstanceActionType.SpawnLoot;
+                                break;
+                            case "teleport":
+                                type = InstanceActionType.Teleport;
                                 break;
                             default:
                                 type = InstanceActionType.None;
@@ -230,6 +236,44 @@ public class InstantiatedWorld implements Listener {
 
                                 // Register the new action as an Event Listener with the plugin.
                                 Bukkit.getServer().getPluginManager().registerEvents(newAction, Bukkit.getPluginManager().getPlugin("InstancedWorlds"));
+                            }
+                        } else if (type == InstanceActionType.Teleport) {
+                            // Get the target teleport location from the THIRD line.
+                            String coordinateLine = ((TextComponent) sign.line(2)).content();
+                            String[] values = coordinateLine.split(";");
+                            Location target = null;
+
+                            if (values.length >= 3) {
+                                if (valueIsNumeric(values[0]) && valueIsNumeric(values[1]) && valueIsNumeric(values[2])) {
+                                    target = new Location(this.getWorld(), Double.parseDouble(values[0]), Double.parseDouble(values[1]), Double.parseDouble(values[2]));
+                                }
+                            }
+
+                            if (target != null) {
+
+                                // Target location is valid. Get the radius, and possible mob id, from the final line.
+                                String radiusLine = ((TextComponent) sign.line(3)).content();
+                                String[] data = radiusLine.split(";");
+                                int radius = -1, mobId = -1;
+
+                                switch(data.length) {
+                                    case 1:
+                                        radius = valueIsNumeric(data[0]) ? Integer.parseInt(data[0]) : -1;
+                                        break;
+                                    case 2:
+                                        radius = valueIsNumeric(data[0]) ? Integer.parseInt(data[0]) : -1;
+                                        mobId = valueIsNumeric(data[1]) ? Integer.parseInt(data[1]) : -1;
+                                        break;
+                                    default:
+                                        break;
+                                }
+
+                                // Instantiate, register, and store the new action.
+                                TeleportAction parsedAction = new TeleportAction(target, sign.getLocation(), radius, mobId);
+                                this.actions.add(parsedAction);
+
+                                Bukkit.getPluginManager().registerEvents(parsedAction, Bukkit.getPluginManager().getPlugin("InstancedWorlds"));
+
                             }
                         }
 

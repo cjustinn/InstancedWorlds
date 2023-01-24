@@ -58,7 +58,7 @@ public class CustomItem {
         for (String enchantmentName : this.enchantments.keySet()) {
             Enchantment currentEnchantment = Enchantment.getByName(enchantmentName.toUpperCase());
             if (currentEnchantment != null) {
-                item.addEnchantment(currentEnchantment, this.enchantments.get(enchantmentName));
+                item.addUnsafeEnchantment(currentEnchantment, this.enchantments.get(enchantmentName));
             }
         }
 
