@@ -1,4 +1,4 @@
-package io.github.cjustinn.instancedworlds.Commands;
+package io.github.cjustinn.instancedworlds.Commands.TabCompleters;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;

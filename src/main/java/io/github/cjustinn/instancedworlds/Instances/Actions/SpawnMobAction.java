@@ -1,7 +1,6 @@
-package io.github.cjustinn.instancedworlds.Instances;
+package io.github.cjustinn.instancedworlds.Instances.Actions;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;

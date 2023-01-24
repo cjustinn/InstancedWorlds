@@ -2,7 +2,6 @@ package io.github.cjustinn.instancedworlds;
 
 import io.github.cjustinn.instancedworlds.CustomItems.CustomItem;
 import io.github.cjustinn.instancedworlds.CustomItems.LootTable;
-import io.github.cjustinn.instancedworlds.Instances.InstanceActionType;
 import io.github.cjustinn.instancedworlds.Instances.InstancePortal;
 import io.github.cjustinn.instancedworlds.Instances.InstantiatedWorld;
 import io.github.cjustinn.instancedworlds.Parties.Party;

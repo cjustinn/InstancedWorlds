@@ -1,4 +1,4 @@
-package io.github.cjustinn.instancedworlds.Commands;
+package io.github.cjustinn.instancedworlds.Commands.Listeners;
 
 import io.github.cjustinn.instancedworlds.InstancedWorldsManager;
 import io.github.cjustinn.instancedworlds.Instances.InstancePortal;

@@ -1,8 +1,8 @@
-package io.github.cjustinn.instancedworlds.Commands;
+package io.github.cjustinn.instancedworlds.Commands.Executors;
 
+import io.github.cjustinn.instancedworlds.Commands.Listeners.PortalCreationListener;
 import io.github.cjustinn.instancedworlds.InstancedWorldsManager;
 import io.github.cjustinn.instancedworlds.Instances.InstancePortal;
-import org.apache.logging.log4j.CloseableThreadContext;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -11,8 +11,6 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-
-import java.lang.management.ManagementFactory;
 
 public class PortalCommandExecutor implements CommandExecutor {
     @Override

@@ -1,4 +1,4 @@
-package io.github.cjustinn.instancedworlds.Commands;
+package io.github.cjustinn.instancedworlds.Commands.TabCompleters;
 
 import io.github.cjustinn.instancedworlds.InstancedWorldsManager;
 import org.bukkit.Bukkit;

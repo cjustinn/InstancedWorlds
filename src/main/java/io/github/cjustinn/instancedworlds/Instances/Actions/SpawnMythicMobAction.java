@@ -1,4 +1,4 @@
-package io.github.cjustinn.instancedworlds.Instances;
+package io.github.cjustinn.instancedworlds.Instances.Actions;
 
 import io.lumine.mythic.api.mobs.MythicMob;
 import io.lumine.mythic.bukkit.BukkitAdapter;

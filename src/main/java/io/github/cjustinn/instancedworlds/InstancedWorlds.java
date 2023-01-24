@@ -1,8 +1,8 @@
 package io.github.cjustinn.instancedworlds;
 
-import io.github.cjustinn.instancedworlds.Commands.*;
+import io.github.cjustinn.instancedworlds.Commands.Executors.*;
+import io.github.cjustinn.instancedworlds.Commands.TabCompleters.*;
 import io.github.cjustinn.instancedworlds.Instances.InstancePortal;
-import io.github.cjustinn.instancedworlds.Instances.InstantiatedWorld;
 import io.github.cjustinn.instancedworlds.Instances.Region;
 import org.bukkit.*;
 import org.bukkit.configuration.ConfigurationSection;

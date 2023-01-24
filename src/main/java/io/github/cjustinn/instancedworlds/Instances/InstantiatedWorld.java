@@ -1,24 +1,21 @@
 package io.github.cjustinn.instancedworlds.Instances;
 
 import io.github.cjustinn.instancedworlds.InstancedWorldsManager;
+import io.github.cjustinn.instancedworlds.Instances.Actions.*;
 import net.kyori.adventure.text.TextComponent;
 import org.bukkit.*;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 public class InstantiatedWorld implements Listener {
 
@@ -146,13 +143,6 @@ public class InstantiatedWorld implements Listener {
                                 type = InstanceActionType.None;
                                 break;
                         }
-
-                        /*
-                            Eventually this will need to be updated, once I add optional integration for MythicMobs,
-                            so that instances are capable of spawning custom mobs created via that plugin as well as
-                            vanilla Minecraft mobs. They will have to be differentiated with a prefix when the intended
-                            mob is a MythicMob type.
-                        */
 
                         if (type == InstanceActionType.SpawnMob) {
                             boolean isMythicMob = false;

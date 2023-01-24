@@ -1,4 +1,4 @@
-package io.github.cjustinn.instancedworlds.Commands;
+package io.github.cjustinn.instancedworlds.Commands.Executors;
 
 import com.sun.org.apache.xpath.internal.operations.Bool;
 import io.github.cjustinn.instancedworlds.InstancedWorldsManager;

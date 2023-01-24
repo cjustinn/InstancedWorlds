@@ -1,4 +1,4 @@
-package io.github.cjustinn.instancedworlds.Instances;
+package io.github.cjustinn.instancedworlds.Instances.Actions;
 
 import io.github.cjustinn.instancedworlds.CustomItems.LootTable;
 import io.github.cjustinn.instancedworlds.InstancedWorldsManager;
@@ -6,7 +6,6 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Item;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
