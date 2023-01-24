@@ -5,7 +5,6 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 
@@ -14,7 +13,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TeleportAction implements InstanceAction, Listener {
+public class TeleportAction extends Action {
     // Data members
     private final Location target;
     private final Location teleportFrom;
@@ -57,9 +56,6 @@ public class TeleportAction implements InstanceAction, Listener {
     }
 
     // InstantAction Overrides
-    @Override
-    public void performAction() {}
-
     public void performAction(Player player) {
         // Check if the player is on teleport cooldown.
         if (playerIsOffCooldown(player)) {
@@ -73,11 +69,6 @@ public class TeleportAction implements InstanceAction, Listener {
             // Teleport the player.
             player.teleport(this.target);
         }
-    }
-
-    @Override
-    public void disableListener() {
-        HandlerList.unregisterAll(this);
     }
 
     // Event Handlers

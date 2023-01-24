@@ -2,9 +2,11 @@ package io.github.cjustinn.instancedworlds;
 
 import io.github.cjustinn.instancedworlds.Commands.Executors.*;
 import io.github.cjustinn.instancedworlds.Commands.TabCompleters.*;
+import io.github.cjustinn.instancedworlds.Instances.Actions.Action;
 import io.github.cjustinn.instancedworlds.Instances.InstancePortal;
 import io.github.cjustinn.instancedworlds.Instances.Region;
 import org.bukkit.*;
+import org.bukkit.block.Sign;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.event.Listener;
@@ -14,6 +16,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 
 public final class InstancedWorlds extends JavaPlugin {
@@ -141,6 +144,18 @@ public final class InstancedWorlds extends JavaPlugin {
     public FileConfiguration getConfigurationFile() { return this.configFile; }
     public void registerListenerWithPlugin(Listener target) {
         getServer().getPluginManager().registerEvents(target, this);
+    }
+
+    // Function to allow for other plugins to register new action sign types.
+    public boolean registerInstanceAction(String actionName, Function<Sign, Action> func) {
+        boolean success = false;
+
+        if (!InstancedWorldsManager.actionMaps.containsKey(actionName)) {
+            InstancedWorldsManager.actionMaps.put(actionName, func);
+            success = true;
+        }
+
+        return success;
     }
 
 }

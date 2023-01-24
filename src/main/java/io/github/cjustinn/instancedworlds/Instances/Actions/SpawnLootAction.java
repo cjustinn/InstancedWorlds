@@ -8,14 +8,13 @@ import org.bukkit.block.Chest;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
 
-public class SpawnLootAction implements InstanceAction, Listener {
+public class SpawnLootAction extends Action {
     private final int targetId;
     private final String lootTableId;
     private final Location chestLocation;
@@ -58,11 +57,6 @@ public class SpawnLootAction implements InstanceAction, Listener {
         disableListener();
 
         this.hasCompleted = true;
-    }
-
-    @Override
-    public void disableListener() {
-        HandlerList.unregisterAll(this);
     }
 
     // Event Handlers

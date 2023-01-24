@@ -9,11 +9,10 @@ import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.metadata.FixedMetadataValue;
 
-public class SpawnMythicMobAction implements InstanceAction, Listener {
+public class SpawnMythicMobAction extends Action {
     // Data Members
     private final String mobName;
     private final int amount, id, radius;
@@ -67,11 +66,6 @@ public class SpawnMythicMobAction implements InstanceAction, Listener {
 
         // Update the hasCompleted variable.
         this.hasCompleted = true;
-    }
-
-    @Override
-    public void disableListener() {
-        HandlerList.unregisterAll(this);
     }
 
     // Event Handlers

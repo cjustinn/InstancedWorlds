@@ -6,11 +6,10 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.metadata.FixedMetadataValue;
 
-public class SpawnMobAction implements InstanceAction, Listener {
+public class SpawnMobAction extends Action {
     public final EntityType mobType;
     public final int amount, radius, id;
     public final Location location;
@@ -48,12 +47,6 @@ public class SpawnMobAction implements InstanceAction, Listener {
         disableListener();
 
         this.hasCompleted = true;
-    }
-
-    // Function to disable the listener. This should be done before the event is removed.
-    @Override
-    public void disableListener() {
-        HandlerList.unregisterAll(this);
     }
 
     /*

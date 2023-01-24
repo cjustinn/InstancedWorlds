@@ -2,17 +2,22 @@ package io.github.cjustinn.instancedworlds;
 
 import io.github.cjustinn.instancedworlds.CustomItems.CustomItem;
 import io.github.cjustinn.instancedworlds.CustomItems.LootTable;
+import io.github.cjustinn.instancedworlds.Instances.Actions.*;
 import io.github.cjustinn.instancedworlds.Instances.InstancePortal;
 import io.github.cjustinn.instancedworlds.Instances.InstantiatedWorld;
 import io.github.cjustinn.instancedworlds.Parties.Party;
 import io.github.cjustinn.instancedworlds.Parties.PartyInvite;
+import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.Sign;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
 import java.util.*;
+import java.util.function.Function;
 
 public class InstancedWorldsManager {
 
@@ -35,7 +40,200 @@ public class InstancedWorldsManager {
     public static List<CustomItem> customItems = new ArrayList<>();
     public static List<LootTable> lootTables = new ArrayList<>();
 
+    // Action Mapping
+    public static Map<String, Function<Sign, Action>> actionMaps = new HashMap<String, Function<Sign, Action>>() {{
+        put("spawnmob", (Sign sign) -> {
+            // Get the type of entity from the third line.
+            String targetEntity = ((TextComponent) sign.line(2)).content();
+
+            boolean isMythicMob = targetEntity.toLowerCase().startsWith("mm:");
+            int amount = 0, mobId = -1, radius = -1;
+
+            // Use the final line to extract any necessary data for spawning conditions, such as radius and the mob id.
+            String[] splitValues = ((TextComponent) sign.line(3)).content().split(";");
+
+            /*
+                Different things should happen, depending on the values provided by the user.
+
+                1 Value     -       The value should be considered the AMOUNT of the mob to spawn.
+                2 Values    -       The values should be considered the AMOUNT of the mob to spawn, and the
+                                        RADIUS the player has to be in, from the spawn location, in order
+                                        for the mob(s) to be spawned.
+                3 Values    -       The values should be considered the AMOUNT of the mob to spawn, the
+                                        ID that should be assigned to the mob(s), and the RADIUS the player
+                                        has to be in, from the spawn location, in order for the mob(s) to be
+                                        spawned.
+            */
+            switch(splitValues.length) {
+                case 1:
+                    amount = InstancedWorldsManager.parseStringToInt(splitValues[0], 0);
+                    break;
+                case 2:
+                    amount = InstancedWorldsManager.parseStringToInt(splitValues[0], 0);
+                    radius = InstancedWorldsManager.parseStringToInt(splitValues[1], -1);
+                    break;
+                case 3:
+                    amount = InstancedWorldsManager.parseStringToInt(splitValues[0], 0);
+                    mobId = InstancedWorldsManager.parseStringToInt(splitValues[1], -1);
+                    radius = InstancedWorldsManager.parseStringToInt(splitValues[2], -1);
+                    break;
+                default:
+                    break;
+            }
+
+            /*
+                If the sign indicates that it should be a MythicMob that is spawned, create a SpawnMythicMobAction provided that the
+                MythicMobs plugin is enabled on the server. If it isn't marked with the "mm:" tag, then consider
+                it to be a vanilla minecraft mob and create a SpawnMobAction.
+            */
+            if (isMythicMob) {
+                if (InstancedWorldsManager.isPluginEnabled("MythicMobs")) {
+                    return new SpawnMythicMobAction(targetEntity.replace("mm:", ""), amount, mobId, radius, sign.getLocation());
+                }
+            } else {
+                EntityType mob = EntityType.fromName(targetEntity.toLowerCase());
+                if (mob != null) {
+                    return new SpawnMobAction(mob, amount, radius, mobId, sign.getLocation());
+                }
+            }
+
+            return null;
+        });
+        put("spawnloot", (Sign sign) -> {
+            // Get the loot table id from the third line.
+            String targetLootTable = ((TextComponent) sign.line(2)).content();
+
+            // Check if the loot table exists.
+            if (InstancedWorldsManager.lootTableExists(targetLootTable)) {
+
+                // Get the mob id number to watch for from the final line of the sign.
+                int targetMob = InstancedWorldsManager.parseStringToInt(((TextComponent) sign.line(3)).content(), -1);
+
+                // Create and return a new SpawnLootAction object.
+                return new SpawnLootAction(targetMob, targetLootTable, sign.getLocation());
+
+            }
+
+            return null;
+        });
+        put("teleport", (Sign sign) -> {
+            // Get the teleport location from the third line of the sign.
+            String coordinatesLine = ((TextComponent) sign.line(2)).content();
+            String[] coordinateData = coordinatesLine.split(";");
+
+            // Attempt to create the target "Location" object.
+            Location target = null;
+
+            if (coordinateData.length >= 3) {
+                if (InstancedWorldsManager.valueIsNumeric(coordinateData[0]) && InstancedWorldsManager.valueIsNumeric(coordinateData[1]) && InstancedWorldsManager.valueIsNumeric(coordinateData[2])) {
+                    target = new Location(sign.getWorld(), Double.parseDouble(coordinateData[0]), Double.parseDouble(coordinateData[1]), Double.parseDouble(coordinateData[2]));
+                }
+            }
+
+            // Proceed only if the target was created successfully.
+            if (target != null) {
+
+                // Get the content of the final line, which should contain radius and potentially a mob id.
+                String conditionalsLine = ((TextComponent) sign.line(3)).content();
+                String[] conditionals = conditionalsLine.split(";");
+
+                // Define and initialize the necessary data variables with the conditional values.
+                int radius = 1, mobId = -1;
+
+                switch(conditionals.length) {
+                    case 1:
+                        radius = parseStringToInt(conditionals[0], 1);
+                        break;
+                    case 2:
+                        radius = parseStringToInt(conditionals[0], 1);
+                        mobId = parseStringToInt(conditionals[1], -1);
+                        break;
+                    default:
+                        break;
+                }
+
+                // Create and return a new TeleportAction object.
+                return new TeleportAction(target, sign.getLocation(), radius, mobId);
+
+            }
+
+            return null;
+        });
+        put("kill", (Sign sign) -> {
+            // Get the first corner of the region from the third line of the sign.
+            String[] corner1Components = ((TextComponent) sign.line(2)).content().split(";");
+            Location corner1 = null;
+
+            // Parse it into a location object.
+            if (corner1Components.length >= 3) {
+                if (valueIsNumeric(corner1Components[0]) && valueIsNumeric(corner1Components[1]) && valueIsNumeric(corner1Components[2])) {
+                    corner1 = new Location(sign.getWorld(), Double.parseDouble(corner1Components[0]), Double.parseDouble(corner1Components[1]), Double.parseDouble(corner1Components[2]));
+                }
+            }
+
+            // Check if the first corner was a valid location.
+            if (corner1 != null) {
+
+                // Get the second corner of the region from the fourth line of the sign.
+                String[] corner2Components = ((TextComponent) sign.line(3)).content().split(";");
+                Location corner2 = null;
+
+                if (corner2Components.length >= 3) {
+                    if (valueIsNumeric(corner2Components[0]) && valueIsNumeric(corner2Components[1]) && valueIsNumeric(corner2Components[2])) {
+                        corner2 = new Location(sign.getWorld(), Double.parseDouble(corner2Components[0]), Double.parseDouble(corner2Components[1]), Double.parseDouble(corner2Components[2]));
+                    }
+                }
+
+                // Check if the second corner was a valid location.
+                if (corner2 != null) {
+
+                    Bukkit.getConsoleSender().sendMessage("[InstancedWorlds] Registered a new KillPlayerAction.");
+                    // Create and return a new "KillPlayerAction" object.
+                    return new KillPlayerAction(corner1, corner2);
+
+                }
+
+            }
+
+            return null;
+        });
+    }};
+
     // Function definitions
+    /*
+        Helper function which will return true or false regarding whether the
+        provided String value can be converted to an integer.
+    */
+    public static boolean valueIsNumeric(String value) {
+        boolean numeric;
+
+        try {
+            Integer.parseInt(value);
+            numeric = true;
+        } catch(NumberFormatException e) {
+            numeric = false;
+        }
+
+        return numeric;
+    }
+
+    /*
+        Helper function which will attempt to convert the string to an integer,
+        returning the new integer value if successful, or the provided fallback
+        if not possible.
+    */
+    public static int parseStringToInt(String value, int fallback) {
+        int converted;
+
+        try {
+            converted = Integer.parseInt(value);
+        } catch(NumberFormatException e) {
+            converted = fallback;
+        }
+
+        return converted;
+    }
+
     /*
         Receives a "String" plugin name, and the function returns a boolean indicating if
         the server has the provided plugin enabled.
@@ -384,7 +582,7 @@ public class InstancedWorldsManager {
 
     /*
         Pass a "UUID" to the function, and it will check all existing parties to see
-        if the provided user is a member of any of them.
+        if the provided user is a member of one of them.
     */
     public static boolean playerIsInParty(UUID ply) {
         boolean inParty = false, found = false;
