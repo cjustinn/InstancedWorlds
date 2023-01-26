@@ -77,7 +77,7 @@ public class TeleportAction extends Action {
     public void onPlayerMove(PlayerMoveEvent event) {
         if (event.getTo().getWorld().equals(this.target.getWorld())) {
             if (event.getTo().distance(this.teleportFrom) <= this.radius) {
-                if (this.targetMobIsDead)
+                if (this.targetMobIsDead || this.mobId < 0)
                     performAction(event.getPlayer());
             }
         }
@@ -85,7 +85,7 @@ public class TeleportAction extends Action {
 
     @EventHandler
     public void onEntityDeath(EntityDeathEvent event) {
-        if (event.getEntity().getWorld().equals(this.target.getWorld())) {
+        if (event.getEntity().getWorld().equals(this.target.getWorld()) && this.mobId >= 0) {
             Entity entity = event.getEntity();
             if (entity.hasMetadata("mobId")) {
                 int id = entity.getMetadata("mobId").get(0).asInt();

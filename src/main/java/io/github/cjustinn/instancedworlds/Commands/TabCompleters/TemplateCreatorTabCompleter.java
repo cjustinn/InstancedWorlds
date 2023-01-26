@@ -26,7 +26,7 @@ public class TemplateCreatorTabCompleter implements TabCompleter {
             completions.add("delete");
         } else if (args.length == 2) {
             if (args[0].equalsIgnoreCase("delete")) {
-                completions.addAll(InstancedWorldsManager.templates.stream().map(World::getName).collect(Collectors.toList()));
+                completions.addAll(InstancedWorldsManager.getTemplateNames());
             } else if (args[0].equalsIgnoreCase("set")) {
                 completions.add("gamerule");
                 completions.add("spawn");

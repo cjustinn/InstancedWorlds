@@ -74,6 +74,5 @@ public class SpawnLootAction extends Action {
             }
 
         }
-
     }
 }

@@ -36,7 +36,7 @@ public class PortalCommandExecutor implements CommandExecutor {
             } else if (args.length < 3) {
                 sender.sendMessage(ChatColor.RED + "You must specify a template world name and a portal name.");
                 return false;
-            } else if (!InstancedWorldsManager.templateExistsByName(args[1])) {
+            } else if (!InstancedWorldsManager.templateExistsById(args[1])) {
                 sender.sendMessage(ChatColor.RED + "There are no template worlds with that name.");
                 return false;
             }

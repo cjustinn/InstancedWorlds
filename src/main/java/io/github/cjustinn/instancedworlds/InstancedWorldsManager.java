@@ -4,6 +4,7 @@ import io.github.cjustinn.instancedworlds.CustomItems.CustomItem;
 import io.github.cjustinn.instancedworlds.CustomItems.LootTable;
 import io.github.cjustinn.instancedworlds.Instances.Actions.*;
 import io.github.cjustinn.instancedworlds.Instances.InstancePortal;
+import io.github.cjustinn.instancedworlds.Instances.InstanceTemplate;
 import io.github.cjustinn.instancedworlds.Instances.InstantiatedWorld;
 import io.github.cjustinn.instancedworlds.Parties.Party;
 import io.github.cjustinn.instancedworlds.Parties.PartyInvite;
@@ -18,6 +19,7 @@ import org.bukkit.entity.Player;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class InstancedWorldsManager {
 
@@ -28,7 +30,7 @@ public class InstancedWorldsManager {
 
     // Static lists used to store persisted data.
     // Instance-related lists
-    public static List<World> templates = new ArrayList<World>();
+    public static List<InstanceTemplate> templates = new ArrayList<InstanceTemplate>();
     public static List<InstantiatedWorld> instances = new ArrayList<InstantiatedWorld>();
     public static List<InstancePortal> portals = new ArrayList<InstancePortal>();
 
@@ -187,12 +189,71 @@ public class InstancedWorldsManager {
                 // Check if the second corner was a valid location.
                 if (corner2 != null) {
 
-                    Bukkit.getConsoleSender().sendMessage("[InstancedWorlds] Registered a new KillPlayerAction.");
                     // Create and return a new "KillPlayerAction" object.
                     return new KillPlayerAction(corner1, corner2);
 
                 }
 
+            }
+
+            return null;
+        });
+        put("experience", (Sign sign) -> {
+            // Get the amount and type (level / points) from the third line.
+            String[] amountArgs = ((TextComponent) sign.line(2)).content().split(";");
+            int amount = 0;
+            boolean isLevel = false;
+
+            switch(amountArgs.length) {
+                case 1:
+                    amount = parseStringToInt(amountArgs[0], 0);
+                    isLevel = false;
+                    break;
+                case 2:
+                    amount = parseStringToInt(amountArgs[0], 0);
+                    isLevel = amountArgs[1].equalsIgnoreCase("levels");
+                    break;
+                default:
+                    break;
+            }
+
+            // Get the mob id and possible radius from the fourth line.
+            String[] dataArg = ((TextComponent) sign.line(3)).content().split(";");
+            int mobId = -1, radius = 0;
+
+            switch(dataArg.length) {
+                case 1:
+                    mobId = parseStringToInt(dataArg[0], -1);
+                    break;
+                case 2:
+                    mobId = parseStringToInt(dataArg[0], -1);
+                    radius = parseStringToInt(dataArg[1], 0);
+                    break;
+                default:
+                    break;
+            }
+
+            // If the mob id is not < 0, create and return the new ExperienceAction object. Otherwise, return null.
+            if (mobId >= 0)
+                return new ExperienceAction(sign.getLocation(), radius, amount, mobId, isLevel);
+            else return null;
+        });
+        put("final", (Sign sign) -> {
+            // Get the mob id from the third line of the sign.
+            String idString = ((TextComponent) sign.line(2)).content();
+            int mobId = parseStringToInt(idString, -1);
+
+            // Get the instance from the world that the sign is in.
+            InstantiatedWorld instance = null;
+
+            final int index = InstancedWorldsManager.getPlayerInstanceIndex(sign.getWorld().getName());
+            if (index > -1) {
+                instance = InstancedWorldsManager.instances.get(index);
+            }
+
+            // Create and return the new InstanceFinalAction object.
+            if (mobId > -1 && instance != null) {
+                return new InstanceFinalAction(instance, mobId);
             }
 
             return null;
@@ -313,6 +374,21 @@ public class InstancedWorldsManager {
         }
 
         return item;
+    }
+
+    /*
+        Pass a "String" type template id value, which the function will use to check if a
+        template world exists with that id.
+    */
+    public static boolean templateExistsById(String id) {
+        boolean exists = false;
+
+        for (int i = 0; i < InstancedWorldsManager.templates.size() && !exists; i++) {
+            if (InstancedWorldsManager.templates.get(i).getId().equalsIgnoreCase(id))
+                exists = true;
+        }
+
+        return exists;
     }
 
     /*
@@ -722,32 +798,86 @@ public class InstancedWorldsManager {
         return index;
     }
 
+    /*
+        Pass a "String" id value for the template, which the function will use to find the
+        template in the "templates" list and return its name value.
+    */
+    public static String getTemplateInstanceNameById(String id) {
+        String instanceName = "<Instance Name Not Found>";
 
+        final int index = InstancedWorldsManager.getTemplateIndexById(id);
+        if (index > -1) {
+            instanceName = InstancedWorldsManager.templates.get(index).getName();
+        }
+
+        return instanceName;
+    }
 
     /*
-        Pass a "World" object to the function, which it will use to update the config file to
-        include the new template world as well as adding it to the list of template worlds
-        used by the plugin.
+        Pass a "String" id and a "String" name, and the function will use them to create a
+        new InstanceTemplate object, store it into the templates list, as well as save the
+        relevant data into the config file.
     */
-    public static boolean saveTemplateWorld(World template) {
-        boolean success = true;
+    public static boolean registerTemplateWorld(String id, String name) {
+        boolean success = false;
 
-        InstancedWorlds plugin = (InstancedWorlds) Bukkit.getPluginManager().getPlugin("InstancedWorlds");
-        if (plugin == null) success = false;
-        else {
-            // Add the template world to the list.
+        // If the id isn't prefaced by "template_", update it.
+        if (!id.startsWith("template_"))
+            id = String.format("template_%s", id);
+
+        // Check if a template already exists with that id or name.
+        if (!InstancedWorldsManager.templateExistsWithIdOrName(id, name)) {
+
+            // Save the data into the config file.
+            InstancedWorldsManager.saveConfigValue(String.format("templates.%s.name", id), name);
+
+            // Create a new InstanceTemplate object.
+            InstanceTemplate template = new InstanceTemplate(id, name);
+
+            // Store the new InstanceTemplate object into the "templates" object.
             InstancedWorldsManager.templates.add(template);
 
-            // Save the template name to the config file "templates" section.
-            plugin.getConfigurationFile().set("templates", InstancedWorldsManager.getTemplateNames());
-            plugin.saveConfig();
+            // Mark the flag as true.
+            success = true;
+
         }
 
         return success;
     }
 
-    public static void addTemplate(World template) {
-        InstancedWorldsManager.templates.add(template);
+    /*
+        Pass a "InstanceTemplate" object which the function will store into the templates
+        list.
+    */
+    public static boolean registerTemplateWorld(InstanceTemplate template) {
+        boolean success = false;
+
+        if (!InstancedWorldsManager.templateExistsWithIdOrName(template.getId(), template.getName())) {
+
+            // Store the InstanceTemplate object into the templates list.
+            InstancedWorldsManager.templates.add(template);
+
+            // Update the flag variable.
+            success = true;
+
+        }
+
+        return success;
+    }
+
+    /*
+        Pass a "String" id and "String" name, which the function will use to verify if there is
+        an existing template with either a matching id or a matching name.
+    */
+    public static boolean templateExistsWithIdOrName(String id, String name) {
+        boolean exists = false;
+
+        for (InstanceTemplate template : InstancedWorldsManager.templates) {
+            if (template.getId().equalsIgnoreCase(id) || template.getName().equalsIgnoreCase(name))
+                exists = true;
+        }
+
+        return exists;
     }
 
     /*
@@ -774,34 +904,42 @@ public class InstancedWorldsManager {
         list of only their world names, which can then be saved as a list in the config file.
     */
     public static List<String> getTemplateNames() {
-        List<String> names = new ArrayList<String>();
-
-        for (World template : InstancedWorldsManager.templates) {
-            names.add(template.getName());
-        }
-
-        return names;
+        return InstancedWorldsManager.templates.stream().map(InstanceTemplate::getId).collect(Collectors.toList());
     }
 
     /*
-        Pass the name of the world (without the prefix) to the function, which it uses
-        as it iterates through the entire "templates" list comparing the passed name,
-        with the prefix added, and returning either null (if no match was found) or
-        the "World" object for the target template world.
+        Gets the index of a template based on the provided "String" id value.
     */
-    public static World findTemplateByName(String name) {
-        final String templateName = "template_" + name;
-        World template = null;
+    public static int getTemplateIndexById(String id) {
+        int index = -1;
         boolean found = false;
 
-        for (int i = 0; i < templates.size() && !found; i++) {
-            if (templates.get(i).getName().equals(templateName)) {
-                template = templates.get(i);
+        for (int i = 0; i < InstancedWorldsManager.templates.size() && !found; i++) {
+            if (InstancedWorldsManager.templates.get(i).getId().equalsIgnoreCase(id)) {
+                index = i;
                 found = true;
             }
         }
 
-        return template;
+        return index;
+    }
+
+    /*
+        Pass the name of the world to the function, which it uses
+        as it iterates through the entire "templates" list comparing the passed name,
+        with the prefix added, and returning either null (if no match was found) or
+        the "World" object for the target template world.
+    */
+    public static World getTemplateWorldById(String id) {
+        World templateWorld = null;
+
+        // Find the template index by its id.
+        final int index = InstancedWorldsManager.getTemplateIndexById(id);
+        if (index > -1) {
+            templateWorld = InstancedWorldsManager.templates.get(index).getTemplateWorld();
+        }
+
+        return templateWorld;
     }
 
 }

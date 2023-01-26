@@ -2,6 +2,7 @@ package io.github.cjustinn.instancedworlds.Commands.Listeners;
 
 import io.github.cjustinn.instancedworlds.InstancedWorldsManager;
 import io.github.cjustinn.instancedworlds.Instances.InstancePortal;
+import io.github.cjustinn.instancedworlds.Instances.InstanceTemplate;
 import io.github.cjustinn.instancedworlds.Instances.Region;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -29,7 +30,12 @@ public class PortalCreationListener implements Listener {
     public PortalCreationListener(Player target, String template, String name) {
         this.player = target;
 
-        this.template = Bukkit.getWorld(template);
+        // If the template value doesn't start with "template_", add it.
+        if (!template.startsWith("template_"))
+            template = String.format("template_%s", template);
+
+        // Get the instance template.
+        this.template = InstancedWorldsManager.getTemplateWorldById(template);
         this.name = name;
 
         target.sendMessage(String.format("%s%s", ChatColor.GOLD, "Please left-click the first corner of the instance portal."));

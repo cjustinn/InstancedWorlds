@@ -4,6 +4,7 @@ import io.github.cjustinn.instancedworlds.Commands.Executors.*;
 import io.github.cjustinn.instancedworlds.Commands.TabCompleters.*;
 import io.github.cjustinn.instancedworlds.Instances.Actions.Action;
 import io.github.cjustinn.instancedworlds.Instances.InstancePortal;
+import io.github.cjustinn.instancedworlds.Instances.InstanceTemplate;
 import io.github.cjustinn.instancedworlds.Instances.Region;
 import org.bukkit.*;
 import org.bukkit.block.Sign;
@@ -34,11 +35,18 @@ public final class InstancedWorlds extends JavaPlugin {
             @Override
             public void run() {
                 // Initialize the templates.
-                List<String> templateNames = getConfigurationFile().getStringList("templates");
-                for (String name : templateNames) {
-                    World template = getServer().createWorld(new WorldCreator(name));
-                    if (template == null) getServer().getConsoleSender().sendMessage(ChatColor.RED + "World [" + name + "] is null!");
-                    InstancedWorldsManager.addTemplate(template);
+                ConfigurationSection templateNames = getConfigurationFile().getConfigurationSection("templates");
+                for (String key : templateNames.getKeys(false)) {
+                    // Get the template instance name.
+                    String instanceName = getConfigurationFile().getString(String.format("templates.%s.name", key));
+
+                    if (instanceName != null) {
+                        // Load the template world.
+                        getServer().createWorld(new WorldCreator(key));
+
+                        // Register the instance template.
+                        InstancedWorldsManager.registerTemplateWorld(new InstanceTemplate(key, instanceName));
+                    }
                 }
 
                 getServer().getConsoleSender().sendMessage("[InstancedWorlds] Loaded " + ChatColor.GREEN + InstancedWorldsManager.templates.size() + ChatColor.RESET + " template worlds.");
@@ -49,29 +57,31 @@ public final class InstancedWorlds extends JavaPlugin {
                     for (String key : portals.getKeys(false)) {
                         // Extract all the config settings for the current portal.
                         World templateWorld = getServer().getWorld(getConfigurationFile().getString("portals." + key + ".template"));
-                        String[] regionCorners = new String[2];
-                        regionCorners[0] = getConfigurationFile().getString("portals." + key + ".region.cornerOne");
-                        regionCorners[1] = getConfigurationFile().getString("portals." + key + ".region.cornerTwo");
-                        String originString = getConfigurationFile().getString("portals." + key + ".origin");
-                        String portalName = getConfigurationFile().getString("portals." + key + ".name");
+                        if (templateWorld != null) {
+                            String[] regionCorners = new String[2];
+                            regionCorners[0] = getConfigurationFile().getString("portals." + key + ".region.cornerOne");
+                            regionCorners[1] = getConfigurationFile().getString("portals." + key + ".region.cornerTwo");
+                            String originString = getConfigurationFile().getString("portals." + key + ".origin");
+                            String portalName = getConfigurationFile().getString("portals." + key + ".name");
 
-                        // Parse the location strings into proper locations.
-                        Location[] regionLocations = new Location[2];
-                        Location origin = null;
+                            // Parse the location strings into proper locations.
+                            Location[] regionLocations = new Location[2];
+                            Location origin = null;
 
-                        for (int i = 0; i < regionCorners.length; i++) {
-                            final String[] data = regionCorners[i].split(";");
-                            regionLocations[i] = new Location(getServer().getWorld(data[0]), Double.parseDouble(data[1]), Double.parseDouble(data[2]), Double.parseDouble(data[3]));
+                            for (int i = 0; i < regionCorners.length; i++) {
+                                final String[] data = regionCorners[i].split(";");
+                                regionLocations[i] = new Location(getServer().getWorld(data[0]), Double.parseDouble(data[1]), Double.parseDouble(data[2]), Double.parseDouble(data[3]));
+                            }
+
+                            final String[] originData = originString.split(";");
+                            origin = new Location(getServer().getWorld(originData[0]), Double.parseDouble(originData[1]), Double.parseDouble(originData[2]), Double.parseDouble(originData[3]));
+
+                            // Convert the two region locations into a region object.
+                            Region region = new Region(regionLocations[0], regionLocations[1]);
+
+                            // Create a new InstancePortal object and store it in the list.
+                            InstancedWorldsManager.savePortal(new InstancePortal(key, templateWorld, region, origin, portalName));
                         }
-
-                        final String[] originData = originString.split(";");
-                        origin = new Location(getServer().getWorld(originData[0]), Double.parseDouble(originData[1]), Double.parseDouble(originData[2]), Double.parseDouble(originData[3]));
-
-                        // Convert the two region locations into a region object.
-                        Region region = new Region(regionLocations[0], regionLocations[1]);
-
-                        // Create a new InstancePortal object and store it in the list.
-                        InstancedWorldsManager.savePortal(new InstancePortal(key, templateWorld, region, origin, portalName));
                     }
                 }
 

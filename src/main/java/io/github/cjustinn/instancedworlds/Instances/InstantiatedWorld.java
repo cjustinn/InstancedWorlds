@@ -27,6 +27,9 @@ public class InstantiatedWorld implements Listener {
     private String template;
     private List<Action> actions;
 
+    // Flags
+    private boolean isCompleted = false;
+
     // Constructors
     public InstantiatedWorld(String id, UUID owner, Location origin, String template) {
         this.instanceId = id;
@@ -54,6 +57,10 @@ public class InstantiatedWorld implements Listener {
     public Location getOrigin() {
         return this.origin;
     }
+    public boolean isCompleted() { return this.isCompleted; }
+
+    // Setters
+    public void setCompleted(boolean complete) { this.isCompleted = complete; }
 
     // Functions
     public World getWorld() {
@@ -105,6 +112,7 @@ public class InstantiatedWorld implements Listener {
     public void onChunkLoaded(ChunkLoadEvent event) {
         if (event.getWorld().equals(this.getWorld())) {
             Chunk chunk = event.getChunk();
+            chunk.setForceLoaded(true);
             for (BlockState s : chunk.getTileEntities()) {
                 if (s instanceof Sign) {
                     Sign sign = (Sign) s;

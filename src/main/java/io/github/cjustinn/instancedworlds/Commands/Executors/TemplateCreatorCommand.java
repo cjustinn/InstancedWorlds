@@ -63,8 +63,8 @@ public class TemplateCreatorCommand implements CommandExecutor {
             if (!sender.hasPermission("instancedworlds.template.create")) {
                 sender.sendMessage(ChatColor.RED + "You do not have permission to run this command!");
                 return false;
-            } else if (args.length < 2) {
-                sender.sendMessage(ChatColor.RED + "You must specify a template name!");
+            } else if (args.length < 3) {
+                sender.sendMessage(ChatColor.RED + "You must specify a template world name and an instance name!");
                 return false;
             }
 
@@ -87,8 +87,8 @@ public class TemplateCreatorCommand implements CommandExecutor {
             template.setSpawnLocation(location);
             location.getBlock().setType(Material.BEDROCK);
 
-            // Add the template to the list.
-            InstancedWorldsManager.saveTemplateWorld(template);
+            // Save the new template.
+            InstancedWorldsManager.registerTemplateWorld(args[1], args[2].replace('_', ' '));
 
             // Inform the user that the template has been saved and created.
             sender.sendMessage(String.format("%sThe template has been created [%s].", ChatColor.GREEN, template.getName()));
@@ -180,7 +180,7 @@ public class TemplateCreatorCommand implements CommandExecutor {
             } else if (args.length < 2) {
                 sender.sendMessage(ChatColor.RED + "You must provide a template name!");
                 return false;
-            } else if (!InstancedWorldsManager.templateExistsByName(args[1])) {
+            } else if (!InstancedWorldsManager.templateExistsById(args[1])) {
                 sender.sendMessage(ChatColor.RED + "There is no template with that name!");
                 return false;
             }
@@ -188,25 +188,33 @@ public class TemplateCreatorCommand implements CommandExecutor {
             boolean success;
 
             // Unload the world.
-            World world = InstancedWorldsManager.findTemplateByName(args[1]);
-            if (Bukkit.unloadWorld(world, false)) {
+            World world = InstancedWorldsManager.getTemplateWorldById(args[1]);
+            if (world != null) {
+                if (Bukkit.unloadWorld(world, false)) {
 
-                File templateDirectory = world.getWorldFolder();
-                try {
-                    FileUtils.deleteDirectory(templateDirectory);
-                    success = true;
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    success = false;
-                }
+                    File templateDirectory = world.getWorldFolder();
+                    try {
+                        FileUtils.deleteDirectory(templateDirectory);
 
-                if (success)
-                    sender.sendMessage(String.format("%sThe template has been removed.", ChatColor.GREEN));
-                else
+                        InstancedWorldsManager.saveConfigValue(String.format("templates.%s", args[1]), null);
+
+                        success = true;
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        success = false;
+                    }
+
+                    if (success)
+                        sender.sendMessage(String.format("%sThe template has been removed.", ChatColor.GREEN));
+                    else
+                        sender.sendMessage(String.format("%sCould not remove %s.", ChatColor.RED, args[1]));
+
+                } else {
                     sender.sendMessage(String.format("%sCould not remove %s.", ChatColor.RED, args[1]));
-
+                    return false;
+                }
             } else {
-                sender.sendMessage(String.format("%sCould not remove %s.", ChatColor.RED, args[1]));
+                sender.sendMessage(String.format("%sThe target template could not be found.", ChatColor.RED));
                 return false;
             }
         }

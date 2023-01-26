@@ -17,7 +17,7 @@ public class KillPlayerAction extends Action {
 
     // Overrides
     public void performAction(Player player) {
-        player.damage(player.getHealth());
+        player.setHealth(0.0);
     }
 
     // Event Handlers
