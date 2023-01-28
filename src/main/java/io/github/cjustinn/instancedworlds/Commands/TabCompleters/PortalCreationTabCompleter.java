@@ -20,14 +20,12 @@ public class PortalCreationTabCompleter implements TabCompleter {
         List<String> completions = new ArrayList<>();
 
         if (args.length == 1) {
-            completions.add("create");
-            completions.add("origin");
-            completions.add("delete");
+            completions.addAll(new ArrayList<String>() {{ add("create"); add("origin"); add("delete"); }}.stream().filter(o -> o.toLowerCase().contains(args[0].toLowerCase())).collect(Collectors.toList()));
         } else if (args.length == 2) {
             if (args[0].equalsIgnoreCase("create")) {
-                completions.addAll(InstancedWorldsManager.getTemplateNames().stream().filter(t -> t.contains(args[1])).collect(Collectors.toList()));
+                completions.addAll(InstancedWorldsManager.getTemplateNames().stream().filter(t -> t.toLowerCase().contains(args[1].toLowerCase())).collect(Collectors.toList()));
             } else if (args[0].equalsIgnoreCase("delete") || args[0].equalsIgnoreCase("origin")) {
-                completions.addAll(InstancedWorldsManager.portals.stream().filter(p -> p.getName().contains(args[1])).map(InstancePortal::getName).collect(Collectors.toList()));
+                completions.addAll(InstancedWorldsManager.portals.stream().filter(p -> p.getName().toLowerCase().contains(args[1].toLowerCase())).map(InstancePortal::getName).collect(Collectors.toList()));
             }
         }
 

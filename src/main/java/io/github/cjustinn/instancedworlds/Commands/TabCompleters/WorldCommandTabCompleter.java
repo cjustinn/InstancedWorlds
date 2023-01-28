@@ -19,7 +19,7 @@ public class WorldCommandTabCompleter implements TabCompleter {
         List<String> completions = new ArrayList<>();
 
         if (args.length == 1) {
-            completions.addAll(Bukkit.getWorlds().stream().filter(w -> w.getName().contains(args[0])).map(World::getName).collect(Collectors.toList()));
+            completions.addAll(Bukkit.getWorlds().stream().filter(w -> w.getName().toLowerCase().contains(args[0].toLowerCase())).map(World::getName).collect(Collectors.toList()));
         }
 
         return completions;

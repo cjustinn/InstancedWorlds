@@ -287,6 +287,23 @@ public class InstancedWorldsManager {
     }
 
     /*
+        Helper function which will attempt to convert the string to a double,
+        returning the new integer value if successful, or the provided fallback
+        if not possible.
+    */
+    public static double parseStringToDouble(String value, double fallback) {
+        double converted;
+
+        try {
+            converted = Double.parseDouble(value);
+        } catch(NumberFormatException e) {
+            converted = fallback;
+        }
+
+        return converted;
+    }
+
+    /*
         Helper function which will attempt to convert the string to an integer,
         returning the new integer value if successful, or the provided fallback
         if not possible.

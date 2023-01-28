@@ -19,11 +19,14 @@ public class SummoningStoneCommandTabCompleter implements TabCompleter {
         List<String> completions = new ArrayList<>();
 
         if (strings.length == 1) {
-            completions.add("create");
-            completions.add("delete");
+            completions.addAll(new ArrayList<String>() {{ add("create"); add("set"); add("delete"); }}.stream().filter(o -> o.toLowerCase().contains(strings[0].toLowerCase())).collect(Collectors.toList()));
         } else if (strings.length == 2) {
-            if (strings[0].equalsIgnoreCase("delete")) {
-                completions.addAll(InstancedWorldsManager.summoningStones.stream().filter(stone -> stone.getReadableId().contains(strings[1])).map(SummoningStone::getReadableId).collect(Collectors.toList()));
+            if (strings[0].equalsIgnoreCase("delete") || strings[0].equalsIgnoreCase("set")) {
+                completions.addAll(InstancedWorldsManager.summoningStones.stream().filter(stone -> stone.getReadableId().toLowerCase().contains(strings[1].toLowerCase())).map(SummoningStone::getReadableId).collect(Collectors.toList()));
+            }
+        } else if (strings.length == 3) {
+            if (strings[0].equalsIgnoreCase("set")) {
+                completions.addAll(new ArrayList<String>() {{ add("name"); add("summoningPoint"); }}.stream().filter(o -> o.toLowerCase().contains(strings[2].toLowerCase())).collect(Collectors.toList()));
             }
         }
 

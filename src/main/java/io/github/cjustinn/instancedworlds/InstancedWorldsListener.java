@@ -10,6 +10,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.world.WorldUnloadEvent;
 
 import java.io.IOException;
@@ -34,6 +35,23 @@ public class InstancedWorldsListener implements Listener {
         }
 
         return canUsePortal;
+    }
+
+    @EventHandler
+    public void onPlayerDisconnect(PlayerQuitEvent event) {
+        if (InstancedWorldsManager.playerIsInParty(event.getPlayer().getUniqueId())) {
+
+            final int partyIndex = InstancedWorldsManager.getPlayerPartyIndex(event.getPlayer().getUniqueId());
+            if (partyIndex >= 0) {
+
+                Party party = InstancedWorldsManager.parties.get(partyIndex);
+                if (party != null) {
+                    party.removePlayerFromParty(event.getPlayer());
+                }
+
+            }
+
+        }
     }
 
     @EventHandler

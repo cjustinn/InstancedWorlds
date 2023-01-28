@@ -95,48 +95,48 @@ public final class InstancedWorlds extends JavaPlugin {
                     }
                 }
 
-                // Initialize the summoning stones.
-                ConfigurationSection summoningStones = getConfigurationFile().getConfigurationSection("summoningstones");
-                if (summoningStones != null) {
-
-                    for (String key : summoningStones.getKeys(false)) {
-
-                        // Get the origin location data and parse it.
-                        String[] originData = getConfigurationFile().getString(String.format("summoningstones.%s.origin", key)).split(";");
-                        Location origin = null;
-
-                        if (originData.length == 4) {
-                            origin = new Location(getServer().getWorld(originData[0]), InstancedWorldsManager.parseStringToInt(originData[1], 0), InstancedWorldsManager.parseStringToInt(originData[2], 0), InstancedWorldsManager.parseStringToInt(originData[3], 0));
-                        }
-
-                        // Get the summoning point data and parse it.
-                        String[] summoningPointData = getConfigurationFile().getString(String.format("summoningstones.%s.summoningPoint", key)).split(";");
-                        Location summoningPoint = null;
-
-                        if (summoningPointData.length == 4) {
-                            summoningPoint = new Location(getServer().getWorld(summoningPointData[0]), InstancedWorldsManager.parseStringToInt(summoningPointData[1], 0), InstancedWorldsManager.parseStringToInt(summoningPointData[2], 0), InstancedWorldsManager.parseStringToInt(summoningPointData[3], 0));
-                        }
-
-                        if (origin != null && summoningPoint != null) {
-
-                            // Get the summon location name.
-                            String name = getConfigurationFile().getString(String.format("summoningstones.%s.name", key));
-
-                            // get the summon readable id.
-                            String readableId = getConfigurationFile().getString(String.format("summoningstones.%s.id", key));
-
-                            // Create and store the SummoningStone object.
-                            InstancedWorldsManager.registerSummoningStone(new SummoningStone(key, origin, summoningPoint, readableId, name));
-
-                        }
-
-                    }
-
-                }
-
                 getServer().getConsoleSender().sendMessage("[InstancedWorlds] Loaded " + ChatColor.GREEN + InstancedWorldsManager.portals.size() + ChatColor.RESET + " instance portals.");
             }
         });
+
+        // Initialize the summoning stones.
+        ConfigurationSection summoningStones = getConfigurationFile().getConfigurationSection("summoningstones");
+        if (summoningStones != null) {
+
+            for (String key : summoningStones.getKeys(false)) {
+
+                // Get the origin location data and parse it.
+                String[] originData = getConfigurationFile().getString(String.format("summoningstones.%s.origin", key)).split(";");
+                Location origin = null;
+
+                if (originData.length >= 4) {
+                    origin = new Location(getServer().getWorld(originData[0]), InstancedWorldsManager.parseStringToDouble(originData[1], 0), InstancedWorldsManager.parseStringToDouble(originData[2], 0), InstancedWorldsManager.parseStringToDouble(originData[3], 0), originData.length == 6 ? (float) InstancedWorldsManager.parseStringToDouble(originData[4], 0) : 0.0f, originData.length == 6 ? (float) InstancedWorldsManager.parseStringToDouble(originData[5], 0.0) : 0.0f);
+                }
+
+                // Get the summoning point data and parse it.
+                String[] summoningPointData = getConfigurationFile().getString(String.format("summoningstones.%s.summoningPoint", key)).split(";");
+                Location summoningPoint = null;
+
+                if (summoningPointData.length >= 4) {
+                    summoningPoint = new Location(getServer().getWorld(summoningPointData[0]), InstancedWorldsManager.parseStringToDouble(summoningPointData[1], 0), InstancedWorldsManager.parseStringToDouble(summoningPointData[2], 0), InstancedWorldsManager.parseStringToDouble(summoningPointData[3], 0), summoningPointData.length == 6 ? (float) InstancedWorldsManager.parseStringToDouble(summoningPointData[4], 0) : 0.0f, summoningPointData.length == 6 ? (float) InstancedWorldsManager.parseStringToDouble(summoningPointData[5], 0.0) : 0.0f);
+                }
+
+                if (origin != null && summoningPoint != null) {
+
+                    // Get the summon location name.
+                    String name = getConfigurationFile().getString(String.format("summoningstones.%s.name", key));
+
+                    // get the summon readable id.
+                    String readableId = getConfigurationFile().getString(String.format("summoningstones.%s.id", key));
+
+                    // Create and store the SummoningStone object.
+                    InstancedWorldsManager.registerSummoningStone(new SummoningStone(key, origin, summoningPoint, readableId, name));
+
+                }
+
+            }
+
+        }
 
         // Register all custom items.
         ConfigurationSection itemSection = getConfigurationFile().getConfigurationSection("items");

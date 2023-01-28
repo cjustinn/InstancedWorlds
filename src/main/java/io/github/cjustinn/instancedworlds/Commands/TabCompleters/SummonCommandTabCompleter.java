@@ -19,11 +19,10 @@ public class SummonCommandTabCompleter implements TabCompleter {
         List<String> completions = new ArrayList<>();
 
         if (strings.length == 1) {
-            completions.add("send");
-            completions.add("accept");
+            completions.addAll(new ArrayList<String>() {{ add("send"); add("accept"); }}.stream().filter(o -> o.toLowerCase().contains(strings[0].toLowerCase())).collect(Collectors.toList()));
         } else if (strings.length == 2) {
             if (strings[0].equalsIgnoreCase("send")) {
-                for (Player player : Bukkit.getOnlinePlayers().stream().filter(p -> ((TextComponent) p.displayName()).content().contains(strings[1])).collect(Collectors.toList())) {
+                for (Player player : Bukkit.getOnlinePlayers().stream().filter(p -> ((TextComponent) p.displayName()).content().toLowerCase().contains(strings[1].toLowerCase())).collect(Collectors.toList())) {
                     completions.add(((TextComponent) player.displayName()).content());
                 }
             }

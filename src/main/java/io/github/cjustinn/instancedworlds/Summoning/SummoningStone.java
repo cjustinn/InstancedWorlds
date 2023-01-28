@@ -13,8 +13,8 @@ public class SummoningStone {
     private final UUID stoneId;
     private final String readableId;
     private final Location origin;
-    private final Location summoningPoint;
-    private final String name;
+    private Location summoningPoint;
+    private String name;
 
     // Constructor
     public SummoningStone(Location o, Location sP, String rId, String n) {
@@ -37,8 +37,17 @@ public class SummoningStone {
     public String getName() { return this.name; }
     public String getReadableId() { return this.readableId; }
     public UUID getUUID() { return this.stoneId; }
-
     public Location getSummoningPoint() { return this.summoningPoint; }
+    public Location getOrigin() { return this.origin; }
+
+    // Setters
+    public void setName(String _name) {
+        this.name = _name;
+    }
+
+    public void setSummoningPoint(Location location) {
+        this.summoningPoint = location;
+    }
 
     // Functions
     public double getDistance(Location playerLocation) {
