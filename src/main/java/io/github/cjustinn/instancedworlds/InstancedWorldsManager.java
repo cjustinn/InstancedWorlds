@@ -8,6 +8,8 @@ import io.github.cjustinn.instancedworlds.Instances.InstanceTemplate;
 import io.github.cjustinn.instancedworlds.Instances.InstantiatedWorld;
 import io.github.cjustinn.instancedworlds.Parties.Party;
 import io.github.cjustinn.instancedworlds.Parties.PartyInvite;
+import io.github.cjustinn.instancedworlds.Summoning.SummoningInvite;
+import io.github.cjustinn.instancedworlds.Summoning.SummoningStone;
 import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -27,6 +29,8 @@ public class InstancedWorldsManager {
     public static int maxPartySize = 5;
     public static int partyInviteTimeout = 60;
     public static int instancePortalCooldown = 15;
+    public static int summonInviteTimeout = 30;
+    public static int summonStoneUseRange = 5;
 
     // Static lists used to store persisted data.
     // Instance-related lists
@@ -41,6 +45,10 @@ public class InstancedWorldsManager {
     // Custom Item-related lists.
     public static List<CustomItem> customItems = new ArrayList<>();
     public static List<LootTable> lootTables = new ArrayList<>();
+
+    // Summoning-related lists.
+    public static List<SummoningStone> summoningStones = new ArrayList<>();
+    public static List<SummoningInvite> summoningInvites = new ArrayList<>();
 
     // Action Mapping
     public static Map<String, Function<Sign, Action>> actionMaps = new HashMap<String, Function<Sign, Action>>() {{
@@ -940,6 +948,110 @@ public class InstancedWorldsManager {
         }
 
         return templateWorld;
+    }
+
+    /*
+        Receives a SummoningInvite object and stores it in the list.
+    */
+    public static void registerSummoningInvite(SummoningInvite invite) {
+        InstancedWorldsManager.summoningInvites.add(invite);
+    }
+
+    /*
+        Receives a player UUID, and uses it to check if the user has any active summon
+        invites. If so, returns true. If not, returns false and removes any timedout
+        invites from the list.
+    */
+    public static boolean playerHasSummoningInvite(UUID player) {
+        List<Integer> indexes = new ArrayList<>();
+        boolean exists = false;
+
+        for (int i = 0; i < InstancedWorldsManager.summoningInvites.size() && !exists; i++) {
+
+            if (InstancedWorldsManager.summoningInvites.get(i).playerIsRecipient(player)) {
+                if (!InstancedWorldsManager.summoningInvites.get(i).isTimedout()) {
+                    exists = true;
+                } else {
+                    indexes.add(i);
+                }
+            }
+
+        }
+
+        for (int index : indexes) InstancedWorldsManager.summoningInvites.remove(index);
+
+        return exists;
+    }
+
+    /*
+        Receives a player UUID, and uses it to find and return the index of any
+        active summon invites that belong to the player.
+
+        **This function does NOT check the timeout status of the invites.
+    */
+    public static int getPlayerSummoningInviteIndex(UUID player) {
+        int index = -1;
+
+        for (int i = 0; i < InstancedWorldsManager.summoningInvites.size() && index < 0; i++) {
+            if (InstancedWorldsManager.summoningInvites.get(i).playerIsRecipient(player)) {
+                index = i;
+            }
+        }
+
+        return index;
+    }
+
+    /*
+        Receives a new SummoningStone object and stores it in the summoningStones list.
+    */
+    public static void registerSummoningStone(SummoningStone stone) {
+        InstancedWorldsManager.summoningStones.add(stone);
+    }
+
+    /*
+        Receives a readable id String value and returns a boolean indicating if a summoning
+        stone with that id already exists or not.
+    */
+    public static boolean summoningStoneExistsWithReadableId(String id) {
+        boolean exists = false;
+
+        for (SummoningStone stone : InstancedWorldsManager.summoningStones) {
+            if (stone.getReadableId().equalsIgnoreCase(id)) {
+                exists = true;
+            }
+        }
+
+        return exists;
+    }
+
+    /*
+        Receives a readable id String value and returns a boolean indicating if a summoning
+        stone with that id already exists or not.
+    */
+    public static int getSummoningStoneIndexByReadableId(String id) {
+        int index = -1;
+
+        for (int i = 0; i < InstancedWorldsManager.summoningStones.size() && index < 0; i++) {
+            if (InstancedWorldsManager.summoningStones.get(i).getReadableId().equalsIgnoreCase(id))
+                index = i;
+        }
+
+        return index;
+    }
+
+    /*
+        Receives a location and returns the first summoning stone index within the configurable
+        radius, if any.
+    */
+    public static int getSummoningStoneIndexInRange(Location location) {
+        int index = -1;
+
+        for (int i = 0; i < InstancedWorldsManager.summoningStones.size() && index < 0; i++) {
+            if (InstancedWorldsManager.summoningStones.get(i).getDistance(location) <= InstancedWorldsManager.summonStoneUseRange)
+                index = i;
+        }
+
+        return index;
     }
 
 }

@@ -6,6 +6,7 @@ import io.github.cjustinn.instancedworlds.Instances.Actions.Action;
 import io.github.cjustinn.instancedworlds.Instances.InstancePortal;
 import io.github.cjustinn.instancedworlds.Instances.InstanceTemplate;
 import io.github.cjustinn.instancedworlds.Instances.Region;
+import io.github.cjustinn.instancedworlds.Summoning.SummoningStone;
 import org.bukkit.*;
 import org.bukkit.block.Sign;
 import org.bukkit.configuration.ConfigurationSection;
@@ -30,22 +31,31 @@ public final class InstancedWorlds extends JavaPlugin {
         saveResource("config.yml", false);
         this.configFile = getConfig();
 
+        // Get all setting values from the config.
+        InstancedWorldsManager.maxPartySize = getConfigurationFile().getInt("maxPartySize");
+        InstancedWorldsManager.instancePortalCooldown = getConfigurationFile().getInt("instancePortalCooldown");
+        InstancedWorldsManager.partyInviteTimeout = getConfigurationFile().getInt("partyInviteTimeout");
+        InstancedWorldsManager.summonInviteTimeout = getConfigurationFile().getInt("summonInviteTimeout");
+        InstancedWorldsManager.summonStoneUseRange = getConfigurationFile().getInt("summonStoneUseRange");
+
         // Schedule the additional template worlds and portals to be initialized post-startup.
         getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
             @Override
             public void run() {
                 // Initialize the templates.
                 ConfigurationSection templateNames = getConfigurationFile().getConfigurationSection("templates");
-                for (String key : templateNames.getKeys(false)) {
-                    // Get the template instance name.
-                    String instanceName = getConfigurationFile().getString(String.format("templates.%s.name", key));
+                if (templateNames != null) {
+                    for (String key : templateNames.getKeys(false)) {
+                        // Get the template instance name.
+                        String instanceName = getConfigurationFile().getString(String.format("templates.%s.name", key));
 
-                    if (instanceName != null) {
-                        // Load the template world.
-                        getServer().createWorld(new WorldCreator(key));
+                        if (instanceName != null) {
+                            // Load the template world.
+                            getServer().createWorld(new WorldCreator(key));
 
-                        // Register the instance template.
-                        InstancedWorldsManager.registerTemplateWorld(new InstanceTemplate(key, instanceName));
+                            // Register the instance template.
+                            InstancedWorldsManager.registerTemplateWorld(new InstanceTemplate(key, instanceName));
+                        }
                     }
                 }
 
@@ -85,6 +95,45 @@ public final class InstancedWorlds extends JavaPlugin {
                     }
                 }
 
+                // Initialize the summoning stones.
+                ConfigurationSection summoningStones = getConfigurationFile().getConfigurationSection("summoningstones");
+                if (summoningStones != null) {
+
+                    for (String key : summoningStones.getKeys(false)) {
+
+                        // Get the origin location data and parse it.
+                        String[] originData = getConfigurationFile().getString(String.format("summoningstones.%s.origin", key)).split(";");
+                        Location origin = null;
+
+                        if (originData.length == 4) {
+                            origin = new Location(getServer().getWorld(originData[0]), InstancedWorldsManager.parseStringToInt(originData[1], 0), InstancedWorldsManager.parseStringToInt(originData[2], 0), InstancedWorldsManager.parseStringToInt(originData[3], 0));
+                        }
+
+                        // Get the summoning point data and parse it.
+                        String[] summoningPointData = getConfigurationFile().getString(String.format("summoningstones.%s.summoningPoint", key)).split(";");
+                        Location summoningPoint = null;
+
+                        if (summoningPointData.length == 4) {
+                            summoningPoint = new Location(getServer().getWorld(summoningPointData[0]), InstancedWorldsManager.parseStringToInt(summoningPointData[1], 0), InstancedWorldsManager.parseStringToInt(summoningPointData[2], 0), InstancedWorldsManager.parseStringToInt(summoningPointData[3], 0));
+                        }
+
+                        if (origin != null && summoningPoint != null) {
+
+                            // Get the summon location name.
+                            String name = getConfigurationFile().getString(String.format("summoningstones.%s.name", key));
+
+                            // get the summon readable id.
+                            String readableId = getConfigurationFile().getString(String.format("summoningstones.%s.id", key));
+
+                            // Create and store the SummoningStone object.
+                            InstancedWorldsManager.registerSummoningStone(new SummoningStone(key, origin, summoningPoint, readableId, name));
+
+                        }
+
+                    }
+
+                }
+
                 getServer().getConsoleSender().sendMessage("[InstancedWorlds] Loaded " + ChatColor.GREEN + InstancedWorldsManager.portals.size() + ChatColor.RESET + " instance portals.");
             }
         });
@@ -103,7 +152,6 @@ public final class InstancedWorlds extends JavaPlugin {
 
                 // Get Enchantments
                 for (String enchantmentKey : getConfigurationFile().getConfigurationSection(String.format("items.%s.enchantments", itemKey)).getKeys(false)) {
-                    Bukkit.getConsoleSender().sendMessage(String.format("[InstancedWorlds] Enchantment: %s", enchantmentKey));
                     enchants.put(enchantmentKey, getConfigurationFile().getInt(String.format("items.%s.enchantments.%s.level", itemKey, enchantmentKey)));
                 }
 
@@ -137,6 +185,8 @@ public final class InstancedWorlds extends JavaPlugin {
         getCommand("portal").setExecutor(new PortalCommandExecutor());
         getCommand("toworld").setExecutor(new WorldCommandExecutor());
         getCommand("instance").setExecutor(new InstanceCommandExecutor());
+        getCommand("summoningstone").setExecutor(new SummoningStoneCommandExecutor());
+        getCommand("summon").setExecutor(new SummonCommandExecutor());
 
         // Register command tab completion.
         getCommand("template").setTabCompleter(new TemplateCreatorTabCompleter());
@@ -144,6 +194,8 @@ public final class InstancedWorlds extends JavaPlugin {
         getCommand("portal").setTabCompleter(new PortalCreationTabCompleter());
         getCommand("toworld").setTabCompleter(new WorldCommandTabCompleter());
         getCommand("instance").setTabCompleter(new InstanceCommandTabCompleter());
+        getCommand("summoningstone").setTabCompleter(new SummoningStoneCommandTabCompleter());
+        getCommand("summon").setTabCompleter(new SummonCommandTabCompleter());
     }
 
     @Override

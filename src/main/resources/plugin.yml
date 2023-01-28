@@ -22,4 +22,10 @@ commands:
   instance:
     description: Perform different actions relating to your current instance.
     aliases: [ instance ]
+  summoningstone:
+    description: Create or delete summoning stones.
+    aliases: [ summoningstone, sstones, st ]
+  summon:
+    description: Send or accept summoning invites.
+    aliases: [ summon ]
 softdepend: [ MythicMobs ]
