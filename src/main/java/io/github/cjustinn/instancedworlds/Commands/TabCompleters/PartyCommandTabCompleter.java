@@ -25,7 +25,7 @@ public class PartyCommandTabCompleter implements TabCompleter {
             completions.add("join");
             completions.add("leave");
         } else if (args.length == 2 && !args[0].toLowerCase().equals("create") && !args[0].toLowerCase().equals("leave")) {
-            completions.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()));
+            completions.addAll(Bukkit.getOnlinePlayers().stream().filter(p -> p.getName().contains(args[1])).map(Player::getName).collect(Collectors.toList()));
         }
 
         return completions;

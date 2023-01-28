@@ -33,7 +33,7 @@ public class TemplateCreatorTabCompleter implements TabCompleter {
             }
         } else if (args.length == 3) {
             if (args[1].equalsIgnoreCase("gamerule")) {
-                completions.addAll(Arrays.stream(GameRule.values()).map(GameRule::getName).collect(Collectors.toList()));
+                completions.addAll(Arrays.stream(GameRule.values()).filter(gr -> gr.getName().contains(args[2])).map(GameRule::getName).collect(Collectors.toList()));
             }
         }
 

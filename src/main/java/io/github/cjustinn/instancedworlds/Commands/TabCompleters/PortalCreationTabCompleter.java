@@ -25,9 +25,9 @@ public class PortalCreationTabCompleter implements TabCompleter {
             completions.add("delete");
         } else if (args.length == 2) {
             if (args[0].equalsIgnoreCase("create")) {
-                completions.addAll(InstancedWorldsManager.getTemplateNames());
+                completions.addAll(InstancedWorldsManager.getTemplateNames().stream().filter(t -> t.contains(args[1])).collect(Collectors.toList()));
             } else if (args[0].equalsIgnoreCase("delete") || args[0].equalsIgnoreCase("origin")) {
-                completions.addAll(InstancedWorldsManager.portals.stream().map(InstancePortal::getName).collect(Collectors.toList()));
+                completions.addAll(InstancedWorldsManager.portals.stream().filter(p -> p.getName().contains(args[1])).map(InstancePortal::getName).collect(Collectors.toList()));
             }
         }
 
