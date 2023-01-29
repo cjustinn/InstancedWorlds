@@ -56,7 +56,7 @@ public class PortalCommandExecutor implements CommandExecutor {
                 Location location = ((Player) sender).getLocation();
 
                 InstancedWorldsManager.portals.get(index).setOrigin(location);
-                InstancedWorldsManager.saveConfigValue(String.format("portals.%s.origin", InstancedWorldsManager.portals.get(index).getPortalId()), String.format("%s;%f;%f;%f", location.getWorld().getName(), location.getX(), location.getY(), location.getZ()));
+                InstancedWorldsManager.saveConfigValue(String.format("portals.%s.origin", InstancedWorldsManager.portals.get(index).getPortalId()), String.format("%s;%f;%f;%f;%f;%f", location.getWorld().getName(), location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch()));
 
                 sender.sendMessage(String.format("%sThe origin for portal '%s' has been updated to your position.", ChatColor.GREEN, InstancedWorldsManager.portals.get(index).getName()));
 

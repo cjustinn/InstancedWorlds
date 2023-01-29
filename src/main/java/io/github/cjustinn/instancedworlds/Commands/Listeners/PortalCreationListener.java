@@ -73,38 +73,43 @@ public class PortalCreationListener implements Listener {
                 // Save the portal into the manager list.
                 Region portalRegion = new Region(this.locations.get(0), this.locations.get(1));
 
-                InstancePortal portal = new InstancePortal(this.template, portalRegion, this.locations.get(2), name);
-                InstancedWorldsManager.savePortal(portal);
+                final int templateIndex = InstancedWorldsManager.getTemplateIndexById(this.template.getName());
+                if (templateIndex >= 0) {
+                    InstanceTemplate _template = InstancedWorldsManager.templates.get(templateIndex);
 
-                // Create the portal in the config
-                String cornerOne = String.format("%s;%f;%f;%f",
-                        portalRegion.getCornerOne().getWorld().getName(),
-                        portalRegion.getCornerOne().getX(),
-                        portalRegion.getCornerOne().getY(),
-                        portalRegion.getCornerOne().getZ()
-                );
+                    InstancePortal portal = new InstancePortal(_template, portalRegion, this.locations.get(2), name);
+                    InstancedWorldsManager.savePortal(portal);
 
-                String cornerTwo = String.format("%s;%f;%f;%f",
-                        portalRegion.getCornerTwo().getWorld().getName(),
-                        portalRegion.getCornerTwo().getX(),
-                        portalRegion.getCornerTwo().getY(),
-                        portalRegion.getCornerTwo().getZ()
-                );
+                    // Create the portal in the config
+                    String cornerOne = String.format("%s;%f;%f;%f",
+                            portalRegion.getCornerOne().getWorld().getName(),
+                            portalRegion.getCornerOne().getX(),
+                            portalRegion.getCornerOne().getY(),
+                            portalRegion.getCornerOne().getZ()
+                    );
 
-                String originString = String.format("%s;%f;%f;%f",
-                        this.locations.get(2).getWorld().getName(),
-                        this.locations.get(2).getX(),
-                        this.locations.get(2).getY(),
-                        this.locations.get(2).getZ()
-                );
+                    String cornerTwo = String.format("%s;%f;%f;%f",
+                            portalRegion.getCornerTwo().getWorld().getName(),
+                            portalRegion.getCornerTwo().getX(),
+                            portalRegion.getCornerTwo().getY(),
+                            portalRegion.getCornerTwo().getZ()
+                    );
 
-                InstancedWorldsManager.saveConfigValue("portals." + portal.getPortalId() + ".template", this.template.getName());
-                InstancedWorldsManager.saveConfigValue("portals." + portal.getPortalId() + ".region.cornerOne", cornerOne);
-                InstancedWorldsManager.saveConfigValue("portals." + portal.getPortalId() + ".region.cornerTwo", cornerTwo);
-                InstancedWorldsManager.saveConfigValue("portals." + portal.getPortalId() + ".origin", originString);
-                InstancedWorldsManager.saveConfigValue("portals." + portal.getPortalId() + ".name", this.name);
+                    String originString = String.format("%s;%f;%f;%f",
+                            this.locations.get(2).getWorld().getName(),
+                            this.locations.get(2).getX(),
+                            this.locations.get(2).getY(),
+                            this.locations.get(2).getZ()
+                    );
 
-                player.sendMessage(ChatColor.GREEN + "The instance portal has been created!");
+                    InstancedWorldsManager.saveConfigValue("portals." + portal.getPortalId() + ".template", this.template.getName());
+                    InstancedWorldsManager.saveConfigValue("portals." + portal.getPortalId() + ".region.cornerOne", cornerOne);
+                    InstancedWorldsManager.saveConfigValue("portals." + portal.getPortalId() + ".region.cornerTwo", cornerTwo);
+                    InstancedWorldsManager.saveConfigValue("portals." + portal.getPortalId() + ".origin", originString);
+                    InstancedWorldsManager.saveConfigValue("portals." + portal.getPortalId() + ".name", this.name);
+
+                    player.sendMessage(ChatColor.GREEN + "The instance portal has been created!");
+                }
 
                 // Deregister this listener.
                 HandlerList.unregisterAll(this);

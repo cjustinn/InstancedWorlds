@@ -3,6 +3,7 @@ package io.github.cjustinn.instancedworlds.Commands.Executors;
 import io.github.cjustinn.instancedworlds.InstancedWorldsManager;
 import io.github.cjustinn.instancedworlds.Instances.InstantiatedWorld;
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -28,9 +29,10 @@ public class InstanceCommandExecutor implements CommandExecutor {
             String instanceId = ((Player) sender).getWorld().getName();
             InstantiatedWorld instance = InstancedWorldsManager.instances.get(InstancedWorldsManager.getPlayerInstanceIndex(instanceId));
 
-            // Teleport the player out of the instance and let them know that they successfully left.
-            ((Player) sender).teleport(instance.getOrigin());
-            sender.sendMessage(ChatColor.GOLD + "You have left the instance.");
+            if (instance != null) {
+                // Remove the player from the instance.
+                instance.removePlayerFromInstance(((Player) sender));
+            }
         }
 
         return true;

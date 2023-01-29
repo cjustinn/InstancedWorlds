@@ -6,6 +6,7 @@ import io.github.cjustinn.instancedworlds.Parties.Party;
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.World;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
@@ -13,6 +14,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.world.WorldUnloadEvent;
 
+import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
@@ -52,6 +54,13 @@ public class InstancedWorldsListener implements Listener {
             }
 
         }
+
+        if (event.getPlayer().getWorld().getName().startsWith("instance_")) {
+            InstantiatedWorld instance = InstancedWorldsManager.getInstanceByName(event.getPlayer().getWorld().getName());
+            if (instance != null) {
+                instance.removePlayerFromInstance(event.getPlayer());
+            }
+        }
     }
 
     @EventHandler
@@ -77,11 +86,6 @@ public class InstancedWorldsListener implements Listener {
                 // Store the player's UUID to make life easier.
                 final UUID playerUuid = event.getPlayer().getUniqueId();
 
-                // Variables to reduce code-repetition.
-                InstantiatedWorld instance = null;
-                String joinMessage = "";
-                boolean instanceWasCreated = false;
-
                 // Check if the player is in a party.
                 if (InstancedWorldsManager.playerIsInParty(playerUuid)) {
                     // Player IS in a party.
@@ -95,7 +99,8 @@ public class InstancedWorldsListener implements Listener {
                             // Teleport the player into the instance.
                             final int instanceIdx = InstancedWorldsManager.getPlayerInstanceIndex(playerParty.getLeader().getUniqueId(), touchedPortal.getInstanceTemplate().getName());
                             if (instanceIdx > -1) {
-                                instance = InstancedWorldsManager.instances.get(instanceIdx);
+                                InstantiatedWorld instance = InstancedWorldsManager.instances.get(instanceIdx);
+                                instance.sendPlayerToInstance(event.getPlayer());
                             } else {
                                 // For whatever reason the instance index couldn't be found.
                                 event.getPlayer().sendMessage(ChatColor.RED + "There was a problem joining the instance! Please try again.");
@@ -103,11 +108,8 @@ public class InstancedWorldsListener implements Listener {
                         } else {
                             // Party leader does NOT have an existing instance.
                             // Create an instance for the party leader.
-                            instance = touchedPortal.openInstance(playerParty.getLeader());
-                            instanceWasCreated = true;
+                            touchedPortal.openInstance(playerParty.getLeader());
                         }
-
-                        joinMessage = InstancedWorldsManager.playerIsLeadingParty(playerUuid) ? "You have joined your own instance." : String.format("You have joined %s's instance.", playerParty.getLeader().getName());
                     } else {
                         // For whatever reason, the party couldn't be found.
                         event.getPlayer().sendMessage(ChatColor.RED + "There was a problem joining the instance! Please try again.");
@@ -119,32 +121,22 @@ public class InstancedWorldsListener implements Listener {
                         // Player DOES have an instance.
                         final int instanceIdx = InstancedWorldsManager.getPlayerInstanceIndex(playerUuid, touchedPortal.getInstanceTemplate().getName());
                         if (instanceIdx > -1) {
-                            instance = InstancedWorldsManager.instances.get(instanceIdx);
+                            InstantiatedWorld instance = InstancedWorldsManager.instances.get(instanceIdx);
+                            instance.sendPlayerToInstance(event.getPlayer());
                         } else event.getPlayer().sendMessage(ChatColor.RED + "There was a problem joining the instance! Please try again.");
                     } else {
                         // Player does NOT have an instance.
-                        instance = touchedPortal.openInstance(event.getPlayer());
-                        instanceWasCreated = true;
+                        touchedPortal.openInstance(event.getPlayer());
                     }
-
-                    joinMessage = "You have joined your own instance.";
                 }
-
-                // Save the instance to the list.
-                if (instanceWasCreated)
-                    InstancedWorldsManager.saveInstance(instance);
-
-                // Move the player into the instance.
-                instance.sendPlayerToInstance(event.getPlayer());
-                event.getPlayer().sendMessage(String.format("%s%s", ChatColor.GOLD, joinMessage));
             }
         }
     }
 
     @EventHandler
     public void onPlayerWorldSwitch(PlayerChangedWorldEvent event) {
+        // Check if the world was an instance.
         if (event.getFrom().getName().startsWith("instance_")) {
-            // The world was an instance.
             // Check the size of the world's player list, if empty, destroy the instance.
             if (event.getFrom().getPlayerCount() == 0) {
                 InstancedWorldsManager.instances.get(InstancedWorldsManager.getPlayerInstanceIndex(event.getFrom().getName())).destroyInstance();
@@ -156,12 +148,15 @@ public class InstancedWorldsListener implements Listener {
     public void onWorldUnloaded(WorldUnloadEvent event) {
         if (event.getWorld().getName().startsWith("instance_")) {
             Bukkit.getScheduler().scheduleSyncDelayedTask(Bukkit.getPluginManager().getPlugin("InstancedWorlds"), () -> {
-                try {
-                    FileUtils.deleteDirectory(event.getWorld().getWorldFolder());
-                } catch(IOException e) {
-                    Bukkit.getConsoleSender().sendMessage(String.format("[InstancedWorlds] %sThe instance [%s] could not be unloaded.", ChatColor.RED, event.getWorld().getName()));
-                    Bukkit.getConsoleSender().sendMessage(String.format("[InstancedWorlds] %s%s", ChatColor.RED, e.getMessage()));
-                }
+                new Thread(() -> {
+                    try {
+                        FileUtils.deleteDirectory(event.getWorld().getWorldFolder());
+                    } catch (IOException e) {
+                        Bukkit.getConsoleSender().sendMessage(String.format("[InstancedWorlds] %sThe instance [%s] could not be unloaded.", ChatColor.RED, event.getWorld().getName()));
+                        Bukkit.getConsoleSender().sendMessage(String.format("[InstancedWorlds] %s%s", ChatColor.RED, e.getMessage()));
+                        e.printStackTrace();
+                    }
+                }).start();
             }, 1L);
         }
     }

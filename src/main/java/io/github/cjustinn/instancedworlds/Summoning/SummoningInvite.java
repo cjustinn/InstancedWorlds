@@ -30,7 +30,7 @@ public class SummoningInvite {
         this.recipient = target;
 
         // Notify the target player that a summoning invite has been sent.
-        this.recipient.sendMessage(String.format("%s%s is attempting to summon you to %s. Type '/summon accept' to accept the summon and teleport.", ChatColor.GOLD, ((TextComponent) sender.displayName()).content(), this.targetName));
+        this.recipient.sendMessage(String.format("%s%s is attempting to summon you to %s. Type '/summon accept' to accept the summon and teleport.", ChatColor.GOLD, sender.getName(), this.targetName));
     }
 
     // Getters

@@ -75,6 +75,22 @@ public class InstantiatedWorld implements Listener {
         World world = this.getWorld();
         if (world != null) {
             player.teleport(world.getSpawnLocation());
+
+            String message = "";
+            if (this.getOwner().equals(player.getUniqueId())) {
+                message = "You have joined your own instance.";
+            } else {
+
+                Player _owner = Bukkit.getServer().getPlayer(this.getOwner());
+                if (_owner != null) {
+
+                    message = String.format("You have joined %s's instance.", _owner.getName());
+
+                }
+
+            }
+
+            player.sendMessage(String.format("%s%s", ChatColor.GOLD, message));
         }
     }
 
@@ -87,10 +103,19 @@ public class InstantiatedWorld implements Listener {
         }
     }
 
+    public void removePlayerFromInstance(Player player) {
+        if (this.origin != null) {
+            player.teleport(this.origin);
+            player.setGameMode(GameMode.SURVIVAL);
+
+            player.sendMessage(ChatColor.GOLD + "You have left the instance.");
+        }
+    }
+
     public void destroyInstance() {
         // Teleport out any players still in the instance.
         for (Player player : this.getWorld().getPlayers()) {
-            player.teleport(this.origin);
+            removePlayerFromInstance(player);
         }
 
         // Deregister all the action listeners.

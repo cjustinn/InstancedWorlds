@@ -11,10 +11,7 @@ import io.github.cjustinn.instancedworlds.Parties.PartyInvite;
 import io.github.cjustinn.instancedworlds.Summoning.SummoningInvite;
 import io.github.cjustinn.instancedworlds.Summoning.SummoningStone;
 import net.kyori.adventure.text.TextComponent;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -266,6 +263,39 @@ public class InstancedWorldsManager {
 
             return null;
         });
+        put("exit", (Sign sign) -> {
+           // Get the instance from the sign world.
+           InstantiatedWorld instance = InstancedWorldsManager.getInstanceByName(sign.getWorld().getName());
+           if (instance != null) {
+
+               // Get the first corner from the third line.
+               String[] c1Parts = ((TextComponent) sign.line(2)).content().split(";");
+               Location corner1 = null;
+
+               if (c1Parts.length >= 3) {
+                   corner1 = new Location(sign.getWorld(), InstancedWorldsManager.parseStringToDouble(c1Parts[0], 0), InstancedWorldsManager.parseStringToDouble(c1Parts[1], 0), InstancedWorldsManager.parseStringToDouble(c1Parts[2], 0));
+               }
+
+               // Get the second corner from the fourth line.
+               String[] c2Parts = ((TextComponent) sign.line(3)).content().split(";");
+               Location corner2 = null;
+
+               if (c2Parts.length >= 3) {
+                   corner2 = new Location(sign.getWorld(), InstancedWorldsManager.parseStringToDouble(c2Parts[0], 0), InstancedWorldsManager.parseStringToDouble(c2Parts[1], 0), InstancedWorldsManager.parseStringToDouble(c2Parts[2], 0));
+               }
+
+               // Check if both locations are valid.
+               if (corner1 != null && corner2 != null) {
+
+                   // Create and return a new "ExitAction" object.
+                   return new ExitAction(corner1, corner2, (Player p) -> { instance.removePlayerFromInstance(p); return null; });
+
+               }
+
+           }
+
+           return null;
+        });
     }};
 
     // Function definitions
@@ -399,6 +429,21 @@ public class InstancedWorldsManager {
         }
 
         return item;
+    }
+
+    /*
+        Receives a "String" instance name value and finds the corresponding InstantiatedWorld
+        object in the list and returns it.
+    */
+    public static InstantiatedWorld getInstanceByName(String name) {
+        InstantiatedWorld instance = null;
+
+        for (int i = 0; i < InstancedWorldsManager.instances.size() && instance == null; i++) {
+            if (InstancedWorldsManager.instances.get(i).getWorld().getName().equalsIgnoreCase(name))
+                instance = InstancedWorldsManager.instances.get(i);
+        }
+
+        return instance;
     }
 
     /*
@@ -843,7 +888,7 @@ public class InstancedWorldsManager {
         new InstanceTemplate object, store it into the templates list, as well as save the
         relevant data into the config file.
     */
-    public static boolean registerTemplateWorld(String id, String name) {
+    public static boolean registerTemplateWorld(String id, String name, GameMode gamemode) {
         boolean success = false;
 
         // If the id isn't prefaced by "template_", update it.
@@ -855,9 +900,10 @@ public class InstancedWorldsManager {
 
             // Save the data into the config file.
             InstancedWorldsManager.saveConfigValue(String.format("templates.%s.name", id), name);
+            InstancedWorldsManager.saveConfigValue(String.format("templates.%s.gamemode", id), gamemode.name());
 
             // Create a new InstanceTemplate object.
-            InstanceTemplate template = new InstanceTemplate(id, name);
+            InstanceTemplate template = new InstanceTemplate(id, name, gamemode);
 
             // Store the new InstanceTemplate object into the "templates" object.
             InstancedWorldsManager.templates.add(template);

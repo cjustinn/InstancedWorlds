@@ -2,6 +2,8 @@ package io.github.cjustinn.instancedworlds.Commands.Executors;
 
 import com.sun.org.apache.xpath.internal.operations.Bool;
 import io.github.cjustinn.instancedworlds.InstancedWorldsManager;
+import io.github.cjustinn.instancedworlds.Instances.InstanceTemplate;
+import io.github.cjustinn.instancedworlds.Instances.InstantiatedWorld;
 import net.kyori.adventure.util.TriState;
 import org.apache.commons.io.FileUtils;
 import org.bukkit.*;
@@ -49,9 +51,9 @@ public class TemplateCreatorCommand implements CommandExecutor {
                 valid options: [ create, set, delete ]
 
             args[1]     -      Template name for the 'create' and 'delete' commands, or the sub-sub-command for 'set'.
-                valid options: [ worldName (create / delete), gamerule (set), spawn (set)
+                valid options: [ worldName (create / delete), gamerule (set), spawn (set), gamemode (set)
 
-            args[2]     -      The gamerule name for the 'set gamerule' command.
+            args[2]     -      The gamerule name for the 'set gamerule' command or the gamemode name for the 'set gamemode' command.
                 valid options: [ any ]
 
             args[3]     -      The value for the 'set gamerule' command.
@@ -88,7 +90,7 @@ public class TemplateCreatorCommand implements CommandExecutor {
             location.getBlock().setType(Material.BEDROCK);
 
             // Save the new template.
-            InstancedWorldsManager.registerTemplateWorld(args[1], args[2].replace('_', ' '));
+            InstancedWorldsManager.registerTemplateWorld(args[1], args[2].replace('_', ' '), GameMode.ADVENTURE);
 
             // Inform the user that the template has been saved and created.
             sender.sendMessage(String.format("%sThe template has been created [%s].", ChatColor.GREEN, template.getName()));
@@ -171,6 +173,34 @@ public class TemplateCreatorCommand implements CommandExecutor {
 
                 // Notify the player.
                 sender.sendMessage(String.format("%sYou have updated the world spawn to your position for world '%s'.", ChatColor.GREEN, world.getName()));
+            } else if (args[1].equalsIgnoreCase("gamemode")) {
+                if (args.length < 3) {
+                    sender.sendMessage(ChatColor.RED + "You must provide a new gamemode!");
+                    return false;
+                }
+
+                GameMode gamemode = null;
+                try {
+                    gamemode = GameMode.valueOf(args[2].toUpperCase());
+                } catch (Exception e) {
+                    sender.sendMessage(ChatColor.RED + "You must provide a valid gamemode!");
+                    return false;
+                }
+
+                if (gamemode != null) {
+                    final int templateIndex = InstancedWorldsManager.getTemplateIndexById(world.getName());
+                    if (templateIndex >= 0) {
+                        InstanceTemplate template = InstancedWorldsManager.templates.get(templateIndex);
+                        if (template != null) {
+
+                            template.setGameMode(gamemode);
+                            InstancedWorldsManager.templates.set(templateIndex, template);
+
+                            sender.sendMessage(String.format("%sYou have successfully updated the template gamemode to %s!", ChatColor.GREEN, gamemode.name()));
+
+                        }
+                    }
+                }
             }
 
         } else if (args[0].equalsIgnoreCase("delete")) {

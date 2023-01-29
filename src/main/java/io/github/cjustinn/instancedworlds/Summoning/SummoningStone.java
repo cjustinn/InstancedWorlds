@@ -2,6 +2,8 @@ package io.github.cjustinn.instancedworlds.Summoning;
 
 import io.github.cjustinn.instancedworlds.InstancedWorldsManager;
 import io.github.cjustinn.instancedworlds.Parties.Party;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -51,7 +53,15 @@ public class SummoningStone {
 
     // Functions
     public double getDistance(Location playerLocation) {
-        return this.origin.distance(playerLocation);
+        double dist = Double.MAX_VALUE;
+
+        try {
+            dist = this.origin.distance(playerLocation);
+        } catch(IllegalArgumentException e) {
+            Bukkit.getConsoleSender().sendMessage(String.format("[InstancedWorlds] %sThere was an error checking the distance between the player and a summoning stone!", ChatColor.RED));
+        }
+
+        return dist;
     }
 
     public boolean summonPlayer(Player sender, Player target) {
